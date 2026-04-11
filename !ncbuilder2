@@ -1,0 +1,6270 @@
+(() => {
+  'use strict';
+
+  const SCRIPT = 'NewCharacter1E';
+  const VERSION = '0.7.3';
+  const CMD = '!ncbuilder2';
+
+  const ATTR = {
+    name: 'character_name',
+    race: 'race',
+    alignment: 'alignment',
+    charClass: 'class',
+    level: 'level',
+    xp: 'xp',
+    hp: 'hitpoints',
+    hpMax: 'hitpoints|max',
+    hitdice: 'hitdice',
+    knowspell: 'knowspell',
+    minspells: 'minspells',
+    maxspells: 'maxspells',
+    syncMatrixClass: 'sync_matrix_class',
+    matrixLevel: 'matrix_level',
+    maximumhenchmen: 'maximumhenchmen',
+    loyaltybonus: 'loyaltybonus',
+    reactionbonus: 'reactionbonus',
+    armorType: 'armortype',
+    armorTypeAC: 'armortype_ac',
+    armorType2: 'armortype2',
+    armorType2AC: 'armortype2_ac',
+    armorShield: 'armorshield',
+    armorShieldAC: 'armorshield_ac',
+    armorHelmet: 'armorhelmet',
+    armorHelmetAC: 'armorhelmet_ac',
+    armorOther: 'armorother',
+    strength: 'strength',
+    intelligence: 'intelligence',
+    wisdom: 'wisdom',
+    dexterity: 'dexterity',
+    constitution: 'constitution',
+    charisma: 'charisma',
+    exceptionalStrength: 'exceptionalstrength',
+    gender: 'gender',
+    age: 'age',
+    height: 'height',
+    weight: 'weight',
+    eyes: 'eyes',
+    hair: 'hair',
+    size: 'size',
+    racialNotes: 'racial_notes',
+    languages: 'languages',
+    movement: 'movement',
+    movementHeavy: 'movement_heavy',
+    movementLoad: 'movement_load',
+    movementMax: 'movement_max',
+    savesClass: 'saves_class',
+    savesLevel: 'saves_level',
+    cp: 'cp',
+    sp: 'sp',
+    ep: 'ep',
+    gp: 'gp',
+    pp: 'pp',
+    toggleThief: 'toggle_thief_skills',
+    toggleCaster2: 'toggle_caster2',
+    toggleExceptional: 'toggle_exceptional',
+    togglePsionics: 'toggle_psionics',
+    toggleMacros: 'toggle_macros',
+    autocalcAC: 'autocalc_ac',
+    autocalcMovement: 'autocalc_movement_flag',
+    autofillMatrix: 'autofill_matrix',
+    autofillThief: 'autofill_thief'
+  };
+
+  const REPEAT = {
+    weapons: 'repeating_weapon',
+    equipment: 'repeating_equipment',
+    spells: 'repeating_spells',
+    nwps: 'repeating_nonweaponproficiencies'
+  };
+
+  const ABILITIES = ['strength', 'intelligence', 'wisdom', 'dexterity', 'constitution', 'charisma'];
+  const ABILITY_LABELS = {
+    strength: 'STR',
+    intelligence: 'INT',
+    wisdom: 'WIS',
+    dexterity: 'DEX',
+    constitution: 'CON',
+    charisma: 'CHA'
+  };
+
+  const CLASS_DATA = {
+    'Cleric': {
+      type: 'single', mins: { wisdom: 9 }, alignments: ['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'True Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'], hd: 8, saveGroup: 'cleric', xp: [0, 1500, 3000, 6000, 13000, 27500, 55000, 110000, 225000, 450000, 675000, 900000, 1125000, 1350000], money: [3, 6, 10], movement: 12, spellCaster: 'cleric'
+    },
+    'Druid': {
+      type: 'single', mins: { wisdom: 12, charisma: 15 }, alignments: ['True Neutral'], hd: 8, saveGroup: 'cleric', xp: [0, 2000, 4000, 7500, 12500, 20000, 35000, 60000, 90000, 125000, 200000, 300000, 750000, 1500000], money: [2, 8, 10], movement: 12, spellCaster: 'druid'
+    },
+    'Fighter': {
+      type: 'single', mins: { strength: 9 }, alignments: ['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'True Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'], hd: 10, saveGroup: 'fighter', xp: [0, 2000, 4000, 8000, 18000, 35000, 70000, 125000, 250000, 500000, 750000, 1000000, 1250000], money: [5, 4, 4], movement: 12
+    },
+    'Paladin': {
+      type: 'single', mins: { strength: 12, wisdom: 13, constitution: 9, charisma: 17 }, alignments: ['Lawful Good'], hd: 10, saveGroup: 'fighter', xp: [0, 2250, 4500, 9000, 18000, 35000, 70000, 150000, 300000, 600000, 900000, 1200000], money: [5, 4, 4], movement: 12, spellCaster: 'paladin'
+    },
+    'Ranger': {
+      type: 'single', mins: { strength: 13, intelligence: 13, wisdom: 14, constitution: 14 }, alignments: ['Lawful Good', 'Neutral Good', 'Chaotic Good'], hd: 8, saveGroup: 'fighter', xp: [0, 2250, 4500, 10000, 20000, 40000, 90000, 150000, 225000, 325000, 600000, 900000], money: [5, 4, 4], movement: 12, spellCaster: 'ranger'
+    },
+    'Magic-User': {
+      type: 'single', mins: { intelligence: 9 }, alignments: ['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'True Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'], hd: 4, saveGroup: 'magicuser', xp: [0, 2500, 5000, 10000, 22500, 40000, 60000, 90000, 135000, 250000, 375000, 750000], money: [2, 4, 4], movement: 12, spellCaster: 'magicuser'
+    },
+    'Illusionist': {
+      type: 'single', mins: { intelligence: 15, dexterity: 16 }, alignments: ['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'True Neutral', 'Chaotic Neutral'], hd: 4, saveGroup: 'magicuser', xp: [0, 2250, 4500, 9000, 18000, 35000, 60000, 90000, 135000, 250000, 500000], money: [2, 4, 4], movement: 12, spellCaster: 'illusionist'
+    },
+    'Thief': {
+      type: 'single', mins: { dexterity: 9 }, alignments: ['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'True Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'], hd: 6, saveGroup: 'thief', xp: [0, 1250, 2500, 5000, 10000, 20000, 42500, 70000, 110000, 160000, 220000, 440000], money: [2, 6, 10], movement: 12
+    },
+    'Assassin': {
+      type: 'single', mins: { strength: 12, dexterity: 12, intelligence: 11 }, alignments: ['Lawful Evil', 'Neutral Evil', 'Chaotic Evil'], hd: 6, saveGroup: 'thief', xp: [0, 1500, 3000, 6000, 12000, 25000, 50000, 100000, 200000, 300000, 450000, 675000], money: [2, 6, 10], movement: 12
+    },
+    'Monk': {
+      type: 'single', mins: { strength: 15, wisdom: 15, dexterity: 15, constitution: 11 }, alignments: ['Lawful Good', 'Lawful Neutral', 'Lawful Evil'], hd: 4, saveGroup: 'cleric', xp: [0, 2250, 4500, 10000, 22500, 47500, 98000, 200000, 325000, 500000, 750000, 1000000], money: [5, 4, 4], movement: 15
+    },
+    'Fighter/Magic-User': { type: 'multi', classes: ['Fighter', 'Magic-User'] },
+    'Fighter/Thief': { type: 'multi', classes: ['Fighter', 'Thief'] },
+    'Magic-User/Thief': { type: 'multi', classes: ['Magic-User', 'Thief'] },
+    'Fighter/Magic-User/Thief': { type: 'multi', classes: ['Fighter', 'Magic-User', 'Thief'] },
+    'Fighter/Illusionist': { type: 'multi', classes: ['Fighter', 'Illusionist'] },
+    'Illusionist/Thief': { type: 'multi', classes: ['Illusionist', 'Thief'] },
+    'Cleric/Fighter': { type: 'multi', classes: ['Cleric', 'Fighter'] },
+    'Cleric/Thief': { type: 'multi', classes: ['Cleric', 'Thief'] },
+    'Cleric/Assassin': { type: 'multi', classes: ['Cleric', 'Assassin'] },
+    'Fighter/Assassin': { type: 'multi', classes: ['Fighter', 'Assassin'] },
+    'Dual-Class (Manual)': { type: 'placeholder' },
+    'Bard Path (Manual)': { type: 'placeholder' }
+  };
+
+  const RACE_DATA = {
+    'Human': { single: ['Cleric', 'Druid', 'Fighter', 'Paladin', 'Ranger', 'Magic-User', 'Illusionist', 'Thief', 'Assassin', 'Monk'], multi: [], size: 'M', adjustments: {}, languages: ['Common'] },
+    'Dwarf': { single: ['Cleric', 'Fighter', 'Thief', 'Assassin'], multi: ['Cleric/Fighter', 'Fighter/Thief'], size: 'S', adjustments: { constitution: +1, charisma: -1 }, languages: ['Common', 'Dwarvish', 'Gnomish', 'Goblin', 'Kobold', 'Orcish'] },
+    'Elf': { single: ['Fighter', 'Magic-User', 'Thief', 'Assassin'], multi: ['Fighter/Magic-User', 'Fighter/Thief', 'Magic-User/Thief', 'Fighter/Magic-User/Thief'], size: 'M', adjustments: { intelligence: +1, dexterity: +1, constitution: -1 }, languages: ['Common', 'Elvish', 'Gnomish', 'Halfling', 'Goblin', 'Hobgoblin', 'Orcish', 'Gnoll'] },
+    'Gnome': { single: ['Fighter', 'Illusionist', 'Thief', 'Assassin', 'Cleric'], multi: ['Fighter/Illusionist', 'Illusionist/Thief', 'Fighter/Thief'], size: 'S', adjustments: { wisdom: +1, constitution: +1, strength: -1 }, languages: ['Common', 'Gnomish', 'Dwarvish', 'Goblin', 'Kobold'] },
+    'Half-Elf': { single: ['Cleric', 'Druid', 'Fighter', 'Ranger', 'Magic-User', 'Thief', 'Assassin'], multi: ['Cleric/Fighter', 'Cleric/Thief', 'Fighter/Magic-User', 'Fighter/Thief', 'Magic-User/Thief', 'Fighter/Magic-User/Thief'], size: 'M', adjustments: {}, languages: ['Common', 'Elvish'] },
+    'Halfling': { single: ['Fighter', 'Thief', 'Druid'], multi: ['Fighter/Thief'], size: 'S', adjustments: { dexterity: +1, strength: -1 }, languages: ['Common', 'Halfling'] },
+    'Half-Orc': { single: ['Cleric', 'Fighter', 'Thief', 'Assassin'], multi: ['Cleric/Fighter', 'Cleric/Thief', 'Cleric/Assassin', 'Fighter/Thief', 'Fighter/Assassin'], size: 'M', adjustments: { strength: +1, constitution: +1, charisma: -2 }, languages: ['Common', 'Orcish'] }
+  };
+
+
+  const RACE_LIMITS = {
+    'Human': {
+      mins: { strength: 3, intelligence: 3, wisdom: 3, dexterity: 3, constitution: 3, charisma: 3 },
+      maxs: { strength: 18, intelligence: 18, wisdom: 18, dexterity: 18, constitution: 18, charisma: 18 }
+    },
+    'Dwarf': {
+      mins: { strength: 8, intelligence: 3, wisdom: 3, dexterity: 3, constitution: 12, charisma: 3 },
+      maxs: { strength: 18, intelligence: 18, wisdom: 18, dexterity: 17, constitution: 19, charisma: 16 }
+    },
+    'Elf': {
+      mins: { strength: 3, intelligence: 8, wisdom: 3, dexterity: 7, constitution: 6, charisma: 8 },
+      maxs: { strength: 18, intelligence: 18, wisdom: 18, dexterity: 19, constitution: 18, charisma: 18 }
+    },
+    'Gnome': {
+      mins: { strength: 6, intelligence: 7, wisdom: 3, dexterity: 3, constitution: 8, charisma: 3 },
+      maxs: { strength: 18, intelligence: 18, wisdom: 18, dexterity: 18, constitution: 18, charisma: 18 }
+    },
+    'Half-Elf': {
+      mins: { strength: 3, intelligence: 4, wisdom: 3, dexterity: 6, constitution: 6, charisma: 3 },
+      maxs: { strength: 18, intelligence: 18, wisdom: 18, dexterity: 18, constitution: 18, charisma: 18 }
+    },
+    'Halfling': {
+      mins: { strength: 6, intelligence: 6, wisdom: 3, dexterity: 8, constitution: 10, charisma: 3 },
+      maxs: { strength: 17, intelligence: 18, wisdom: 17, dexterity: 18, constitution: 19, charisma: 18 }
+    },
+    'Half-Orc': {
+      mins: { strength: 6, intelligence: 3, wisdom: 3, dexterity: 3, constitution: 13, charisma: 3 },
+      maxs: { strength: 18, intelligence: 17, wisdom: 14, dexterity: 17, constitution: 19, charisma: 12 }
+    }
+  };
+
+
+  const CLASS_HITDICE = {
+    'Cleric': '1d8',
+    'Druid': '1d8',
+    'Fighter': '1d10',
+    'Paladin': '1d10',
+    'Ranger': '2d8',
+    'Magic-User': '1d4',
+    'Illusionist': '1d4',
+    'Thief': '1d6',
+    'Assassin': '1d6',
+    'Monk': '2d4'
+  };
+
+  const ARMOR_AC = {
+    'Padded Armor': 8,
+    'Leather Armor': 8,
+    'Studded Leather Armor': 7,
+    'Ring Mail': 7,
+    'Scale Mail': 6,
+    'Chain Mail': 5,
+    'Splinted Armor': 4,
+    'Banded Armor': 4,
+    'Plate Mail': 3,
+    'Shield, Small': 1,
+    'Shield, Large': 1,
+    'Shield, Small, Wooden': 1,
+    'Helmet, Great': 10,
+    'Helmet, Small': 10
+  };
+
+  const ITEM_WEIGHT_FALLBACK = {
+    'Padded Armor': 10,
+    'Leather Armor': 15,
+    'Studded Leather Armor': 25,
+    'Ring Mail': 30,
+    'Scale Mail': 40,
+    'Chain Mail': 40,
+    'Splinted Armor': 45,
+    'Banded Armor': 35,
+    'Plate Mail': 50,
+    'Shield, Small': 10,
+    'Shield, Large': 15,
+    'Shield, Small, Wooden': 5,
+    'Helmet, Great': 5,
+    'Helmet, Small': 3,
+    'Long Sword': 5,
+    'Short Sword': 3,
+    'Dagger': 1,
+    'Mace': 5,
+    'Quarterstaff': 4,
+    'Sling': 0,
+    'Bow, Short': 3,
+    'Arrow, normal, dozen': 3,
+    'Backpack': 2,
+    'Rope, 50 ft.': 5,
+    'Torch': 1,
+    'Waterskin': 2,
+    'Iron Rations, 1 week': 7,
+    'Holy Symbol, Silver': 1,
+    'Spell Book': 3,
+    'Thieves Tools': 3
+  };
+
+  const CLASS_ARMOR_RULES = {
+    'Cleric': { armor: 'all', shield: 'all' },
+    'Druid': { armor: ['Padded Armor', 'Leather Armor', 'Studded Leather Armor'], shield: ['Shield, Small, Wooden'] },
+    'Fighter': { armor: 'all', shield: 'all' },
+    'Paladin': { armor: 'all', shield: 'all' },
+    'Ranger': { armor: 'all', shield: 'all' },
+    'Magic-User': { armor: [], shield: [] },
+    'Illusionist': { armor: [], shield: [] },
+    'Thief': { armor: ['Padded Armor', 'Leather Armor', 'Studded Leather Armor'], shield: [] },
+    'Assassin': { armor: ['Padded Armor', 'Leather Armor', 'Studded Leather Armor'], shield: [] },
+    'Monk': { armor: [], shield: [] }
+  };
+
+
+  const CLASS_WEAPON_RULES = {
+    'Cleric': ['Club', 'Flail, footman’s', 'Flail, horseman’s', 'Hammer', 'Mace, footman’s', 'Mace, horseman’s', 'Morning Star', 'Staff, Quarter', 'Sling', 'Sling bullet', 'Sling stone'],
+    'Druid': ['Club', 'Dagger', 'Dart', 'Hammer', 'Scimitar', 'Sling', 'Sling bullet', 'Sling stone', 'Spear', 'Staff, Quarter'],
+    'Fighter': 'all',
+    'Paladin': 'all',
+    'Ranger': 'all',
+    'Magic-User': ['Dagger', 'Dart', 'Staff, Quarter', 'Sling', 'Sling bullet', 'Sling stone'],
+    'Illusionist': ['Dagger', 'Dart', 'Staff, Quarter', 'Sling', 'Sling bullet', 'Sling stone'],
+    'Thief': ['Club', 'Dagger', 'Dart', 'Sling', 'Sling bullet', 'Sling stone', 'Sword, Short', 'Sword, Broad', 'Sword, Long'],
+    'Assassin': 'all',
+    'Monk': ['Bo Stick', 'Club', 'Crossbow, light', 'Crossbow, heavy', 'Dagger', 'Axe, Hand or Throwing', 'Javelin', 'Jo Stick', 'Spear', 'Staff, Quarter']
+  };
+
+  const WEAPON_DATA = {
+    'Arrow': { weight_gp: 2, dmg_sm: '1d6', dmg_lg: '1d6', dmg_type: 'P', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Axe, Battle': { weight_gp: 75, dmg_sm: '1d8', dmg_lg: '1d8', dmg_type: 'S', attack_type: 'Melee', speed: 7, length: "4'", space: "4'" },
+    'Axe, Hand or Throwing': { weight_gp: 50, dmg_sm: '1d6', dmg_lg: '1d4', dmg_type: 'S', attack_type: 'Melee/Missile', speed: 4, length: "1.5'", space: "1'" },
+    'Bardiche': { weight_gp: 125, dmg_sm: '2d4', dmg_lg: '3d4', dmg_type: 'S', attack_type: 'Melee', speed: 9, length: "5'", space: "5'" },
+    'Bo Stick': { weight_gp: 15, dmg_sm: '1d6', dmg_lg: '1d3', dmg_type: 'B', attack_type: 'Melee', speed: 3, length: "5'", space: "3'" },
+    'Bow, Long': { weight_gp: 100, dmg_sm: '1d6', dmg_lg: '1d6', dmg_type: 'P', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Bow, Short': { weight_gp: 50, dmg_sm: '1d6', dmg_lg: '1d6', dmg_type: 'P', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Club': { weight_gp: 30, dmg_sm: '1d6', dmg_lg: '1d3', dmg_type: 'B', attack_type: 'Melee', speed: 4, length: "3'", space: "1-3'" },
+    'Crossbow, Heavy': { weight_gp: 80, dmg_sm: '2d5', dmg_lg: '2d7', dmg_type: 'P', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Crossbow, Light': { weight_gp: 50, dmg_sm: '1d4', dmg_lg: '1d4', dmg_type: 'P', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Dagger': { weight_gp: 10, dmg_sm: '1d4', dmg_lg: '1d3', dmg_type: 'P/S', attack_type: 'Melee/Missile', speed: 2, length: '15"', space: "1'" },
+    'Dart': { weight_gp: 5, dmg_sm: '1d3', dmg_lg: '1d2', dmg_type: 'P', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Flail, Footman’s': { weight_gp: 150, dmg_sm: '2d7', dmg_lg: '2d8', dmg_type: 'B', attack_type: 'Melee', speed: 7, length: "4'", space: "6'" },
+    'Flail, Horseman’s': { weight_gp: 35, dmg_sm: '2d5', dmg_lg: '2d5', dmg_type: 'B', attack_type: 'Melee', speed: 6, length: "2'", space: "4'" },
+    'Hammer': { weight_gp: 50, dmg_sm: '2d5', dmg_lg: '1d4', dmg_type: 'B', attack_type: 'Melee/Missile', speed: 4, length: "1.5'", space: "2'" },
+    'Harpoon': { weight_gp: 55, dmg_sm: '2d4', dmg_lg: '3d4', dmg_type: 'P', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Javelin': { weight_gp: 20, dmg_sm: '1d6', dmg_lg: '1d6', dmg_type: 'P', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Jo Stick': { weight_gp: 40, dmg_sm: '1d6', dmg_lg: '1d4', dmg_type: 'B', attack_type: 'Melee', speed: 2, length: "3'", space: "2'" },
+    'Mace, Footman’s': { weight_gp: 100, dmg_sm: '2d7', dmg_lg: '1d6', dmg_type: 'B', attack_type: 'Melee', speed: 7, length: "2.5'", space: "4'" },
+    'Mace, Horseman’s': { weight_gp: 50, dmg_sm: '1d6', dmg_lg: '1d4', dmg_type: 'B', attack_type: 'Melee', speed: 6, length: "1.5'", space: "2'" },
+    'Morning Star': { weight_gp: 125, dmg_sm: '2d4', dmg_lg: '2d7', dmg_type: 'B/P', attack_type: 'Melee', speed: 7, length: "4'", space: "5'" },
+    'Scimitar': { weight_gp: 40, dmg_sm: '1d8', dmg_lg: '1d8', dmg_type: 'S', attack_type: 'Melee', speed: 4, length: "3'", space: "2'" },
+    'Sling': { weight_gp: 0, dmg_sm: '1d4/1d4', dmg_lg: '1d4/1d4', dmg_type: 'B', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Sling Bullet': { weight_gp: 2, dmg_sm: '2d5', dmg_lg: '2d7', dmg_type: 'B', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Sling Stone': { weight_gp: 1, dmg_sm: '1d4', dmg_lg: '1d4', dmg_type: 'B', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Spear': { weight_gp: 50, dmg_sm: '1d6', dmg_lg: '1d8', dmg_type: 'P', attack_type: 'Melee/Missile', speed: '6-8', length: "5-13+'", space: "1'" },
+    'Spetum': { weight_gp: 50, dmg_sm: '2d7', dmg_lg: '2d12', dmg_type: 'P', attack_type: 'Melee', speed: 8, length: "8+'", space: "1'" },
+    'Staff Sling': { weight_gp: 5, dmg_sm: '2d8', dmg_lg: '3d9', dmg_type: 'B', attack_type: 'Missile', speed: '-', length: '-', space: '-' },
+    'Staff, Quarter': { weight_gp: 50, dmg_sm: '1d6', dmg_lg: '1d6', dmg_type: 'B', attack_type: 'Melee', speed: 4, length: "6-8'", space: "3'" },
+    'Sword, Broad': { weight_gp: 75, dmg_sm: '2d4', dmg_lg: '2d7', dmg_type: 'S', attack_type: 'Melee', speed: 5, length: "3.5'", space: "4'" },
+    'Sword, Khopesh': { weight_gp: 75, dmg_sm: '2d4', dmg_lg: '1d6', dmg_type: 'S', attack_type: 'Melee', speed: 5, length: "3.5'", space: "4'" },
+    'Sword, Long': { weight_gp: 60, dmg_sm: '1d8', dmg_lg: '1d12', dmg_type: 'S', attack_type: 'Melee', speed: 5, length: "3.5'", space: "3'" },
+    'Sword, Short': { weight_gp: 35, dmg_sm: '1d6', dmg_lg: '1d8', dmg_type: 'P', attack_type: 'Melee', speed: 3, length: "2'", space: "1'" },
+    'Sword, Two-handed': { weight_gp: 250, dmg_sm: '1d10', dmg_lg: '3d6', dmg_type: 'S', attack_type: 'Melee', speed: 10, length: "6'", space: "6'" },
+    'Trident': { weight_gp: 50, dmg_sm: '2d7', dmg_lg: '3d4', dmg_type: 'P', attack_type: 'Melee/Missile', speed: '6-8', length: "4-8+'", space: "1'" }
+  };
+
+  const STANDARD_ITEM_WEIGHT_GP = {
+    'Backpack': 20,
+    'Belt': 3,
+    'Book, large metal-bound': 200,
+    'Boots, hard': 60,
+    'Boots, soft': 30,
+    'Bow, composite long': 80,
+    'Bow, composite short': 50,
+    'Bow, long': 100,
+    'Bow, short': 50,
+    'Caltrop': 50,
+    'Candle': 5,
+    'Crossbow, heavy': 80,
+    'Crossbow, light': 50,
+    'Flask, empty': 7,
+    'Flask, full': 20,
+    'Grapnel': 100,
+    'Helm': 45,
+    'Helmet, Great': 100,
+    'Helmet, Small': 45,
+    'Holy Symbol, Silver': 1,
+    'Holy Symbol, Iron': 20,
+    'Holy Symbol, Wooden': 7,
+    'Lantern': 60,
+    'Pole, 10 ft.': 100,
+    'Quiver': 30,
+    'Rations, iron 1 week': 75,
+    'Rations, standard 1 week': 200,
+    'Rope, 50 ft.': 75,
+    'Sack, large': 20,
+    'Sack, small': 5,
+    'Scroll case, bone or ivory': 50,
+    'Scroll case, leather': 25,
+    'Spike': 10,
+    'Staff': 100,
+    'Spell Book': 200,
+    'Tinderbox': 2,
+    'Torch': 25,
+    'Waterskin': 5,
+    'Waterskin, full': 50
+  };
+
+  const ALIGNMENTS = [
+    'Lawful Good', 'Neutral Good', 'Chaotic Good',
+    'Lawful Neutral', 'True Neutral', 'Chaotic Neutral',
+    'Lawful Evil', 'Neutral Evil', 'Chaotic Evil'
+  ];
+
+  const BONUS_LANGUAGE_POOL = ['Elvish', 'Dwarvish', 'Gnomish', 'Halfling', 'Orcish', 'Goblin', 'Hobgoblin', 'Gnoll', 'Kobold', 'Giant', 'Draconic'];
+
+  const intBonusLanguageCount = (score) => {
+    const s = parseInt(score, 10) || 0;
+    if (s <= 7) return 0;
+    if (s <= 9) return 1;
+    if (s <= 11) return 2;
+    if (s <= 13) return 3;
+    if (s <= 15) return 4;
+    if (s === 16) return 5;
+    if (s === 17) return 6;
+    return 7;
+  };
+
+  const uniqueStrings = (arr) => {
+    const seen = {};
+    const out = [];
+    (arr || []).forEach(v => {
+      const s = String(v || '').trim();
+      const k = s.toLowerCase();
+      if (!s || seen[k]) return;
+      seen[k] = true;
+      out.push(s);
+    });
+    return out;
+  };
+
+  const syncLanguages = (session) => {
+    const base = session.race && RACE_DATA[session.race] ? clone(RACE_DATA[session.race].languages || []) : ['Common'];
+    const intScore = session.finalStats ? session.finalStats.intelligence : (session.baseStats ? session.baseStats.intelligence : 0);
+    const picks = Math.max(0, intBonusLanguageCount(intScore));
+    const selected = uniqueStrings(session.bonusLanguages || []).filter(l => base.indexOf(l) === -1).slice(0, picks);
+    session.bonusLanguages = selected;
+    session.languages = uniqueStrings(base.concat(selected));
+    return { base, selected, picks };
+  };
+
+  const EYES = ['Brown', 'Blue', 'Green', 'Gray', 'Hazel', 'Black'];
+  const HAIR = ['Black', 'Brown', 'Blond', 'Red', 'Auburn', 'Gray', 'White'];
+
+  const EQUIPMENT_CATEGORIES = ['armor','weapons','ammo','clothing','herbs','misc','provisions','religious','components','potions','scrolls','books','curios','rings','rods_wands','wondrous','tack','livestock','transport','trinkets'];
+  const EQUIPMENT = [
+  {
+    "key": "quarterstaff_basic",
+    "name": "Quarterstaff",
+    "category": "weapons",
+    "price": "1 gp",
+    "shopTypes": ["baseline", "smith", "outfitter", "trading_post"],
+    "tags": ["weapon", "wood"],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "banded",
+    "name": "Banded Armor",
+    "category": "armor",
+    "price": "90 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "chain",
+    "name": "Chain Mail",
+    "category": "armor",
+    "price": "75 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "helmet_great",
+    "name": "Helmet, Great",
+    "category": "armor",
+    "price": "15 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "helmet_small",
+    "name": "Helmet, Small",
+    "category": "armor",
+    "price": "10 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "leather",
+    "name": "Leather Armor",
+    "category": "armor",
+    "price": "5 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "padded",
+    "name": "Padded Armor",
+    "category": "armor",
+    "price": "4 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "cloth"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "plate",
+    "name": "Plate Mail",
+    "category": "armor",
+    "price": "400 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "ring_mail",
+    "name": "Ring Mail",
+    "category": "armor",
+    "price": "30 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "scale",
+    "name": "Scale Mail",
+    "category": "armor",
+    "price": "45 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "shield_large",
+    "name": "Shield, Large",
+    "category": "armor",
+    "price": "15 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "wood",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "shield_small",
+    "name": "Shield, Small",
+    "category": "armor",
+    "price": "10 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "wood",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "shield_small_wood",
+    "name": "Shield, Small, Wooden",
+    "category": "armor",
+    "price": "1 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "splinted",
+    "name": "Splinted Armor",
+    "category": "armor",
+    "price": "80 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "studded",
+    "name": "Studded Leather Armor",
+    "category": "armor",
+    "price": "15 gp",
+    "shopTypes": [
+      "smith",
+      "outfitter",
+      "baseline"
+    ],
+    "tags": [
+      "armor",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "arrow_single",
+    "name": "Arrow, normal, single",
+    "category": "ammo",
+    "price": "2 sp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter",
+      "trading_post"
+    ],
+    "tags": [
+      "ammo",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "arrow_dozen",
+    "name": "Arrow, normal, dozen",
+    "category": "ammo",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter",
+      "trading_post"
+    ],
+    "tags": [
+      "ammo",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "arrow_silver",
+    "name": "Arrow, silver, single",
+    "category": "ammo",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter",
+      "trading_post"
+    ],
+    "tags": [
+      "ammo",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "axe_battle",
+    "name": "Axe, battle",
+    "category": "weapons",
+    "price": "5 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "axe_hand",
+    "name": "Axe, hand or throwing",
+    "category": "weapons",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "bardiche",
+    "name": "Bardiche",
+    "category": "weapons",
+    "price": "7 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "wood",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "bec_de_corbin",
+    "name": "Bec de corbin",
+    "category": "weapons",
+    "price": "6 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "bill_guisarme",
+    "name": "Bill-Guisarme",
+    "category": "weapons",
+    "price": "6 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "bow_comp_short",
+    "name": "Bow, composite short",
+    "category": "weapons",
+    "price": "75 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "bow"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "bow_comp_long",
+    "name": "Bow, composite long",
+    "category": "weapons",
+    "price": "100 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "bow"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "bow_long",
+    "name": "Bow, long",
+    "category": "weapons",
+    "price": "60 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "bow"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "bow_short",
+    "name": "Bow, short",
+    "category": "weapons",
+    "price": "15 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "bow"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "crossbow_heavy",
+    "name": "Crossbow, heavy",
+    "category": "weapons",
+    "price": "20 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "metal",
+      "crossbow"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "crossbow_light",
+    "name": "Crossbow, light",
+    "category": "weapons",
+    "price": "12 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "metal",
+      "crossbow"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "dagger",
+    "name": "Dagger and scabbard",
+    "category": "weapons",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "dart",
+    "name": "Dart",
+    "category": "weapons",
+    "price": "5 sp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "fauchard",
+    "name": "Fauchard",
+    "category": "weapons",
+    "price": "3 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "fauchard_fork",
+    "name": "Fauchard-Fork",
+    "category": "weapons",
+    "price": "8 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "flail_foot",
+    "name": "Flail, footman’s",
+    "category": "weapons",
+    "price": "3 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "flail_horse",
+    "name": "Flail, horseman’s",
+    "category": "weapons",
+    "price": "8 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "wood"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "fork_military",
+    "name": "Fork, Military",
+    "category": "weapons",
+    "price": "4 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "glaive",
+    "name": "Glaive",
+    "category": "weapons",
+    "price": "6 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "glaive_guisarme",
+    "name": "Glaive-Guisarme",
+    "category": "weapons",
+    "price": "10 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "guisarme",
+    "name": "Guisarme",
+    "category": "weapons",
+    "price": "5 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "guisarme_voulge",
+    "name": "Guisarme-Voulge",
+    "category": "weapons",
+    "price": "7 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "halberd",
+    "name": "Halberd",
+    "category": "weapons",
+    "price": "9 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "hammer_lucern",
+    "name": "Hammer, Lucern",
+    "category": "weapons",
+    "price": "7 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "hammer",
+    "name": "Hammer",
+    "category": "weapons",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "javelin",
+    "name": "Javelin",
+    "category": "weapons",
+    "price": "10 sp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "missile"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "lance",
+    "name": "Lance",
+    "category": "weapons",
+    "price": "6 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "mounted"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "mace_foot",
+    "name": "Mace, footman’s",
+    "category": "weapons",
+    "price": "8 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "mace_horse",
+    "name": "Mace, horseman’s",
+    "category": "weapons",
+    "price": "4 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "morning_star",
+    "name": "Morning Star",
+    "category": "weapons",
+    "price": "5 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "partisan",
+    "name": "Partisan",
+    "category": "weapons",
+    "price": "10 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "pick_foot",
+    "name": "Pick, Military, footman’s",
+    "category": "weapons",
+    "price": "8 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "pick_horse",
+    "name": "Pick, Military, horseman’s",
+    "category": "weapons",
+    "price": "5 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "pike_awl",
+    "name": "Pike, awl",
+    "category": "weapons",
+    "price": "3 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "quarrel_light_single",
+    "name": "Quarrel (or Bolt), light, single",
+    "category": "ammo",
+    "price": "1 sp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "ammo",
+      "wood",
+      "crossbow"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "quarrel_heavy_score",
+    "name": "Quarrel (or Bolt), heavy, score",
+    "category": "ammo",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "ammo",
+      "wood",
+      "crossbow"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "ranseur",
+    "name": "Ranseur",
+    "category": "weapons",
+    "price": "4 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "scimitar",
+    "name": "Scimitar",
+    "category": "weapons",
+    "price": "15 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sling_dozen",
+    "name": "Sling & Bullets, dozen",
+    "category": "weapons",
+    "price": "15 sp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "missile"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sling_bullets_score",
+    "name": "Sling Bullets, score",
+    "category": "ammo",
+    "price": "10 sp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter",
+      "trading_post"
+    ],
+    "tags": [
+      "ammo",
+      "stone"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "spear",
+    "name": "Spear",
+    "category": "weapons",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "spetum",
+    "name": "Spetum",
+    "category": "weapons",
+    "price": "3 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sword_bastard",
+    "name": "Sword, bastard, & scabbard",
+    "category": "weapons",
+    "price": "25 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sword_broad",
+    "name": "Sword, broad, & scabbard",
+    "category": "weapons",
+    "price": "10 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sword_long",
+    "name": "Sword, long & scabbard",
+    "category": "weapons",
+    "price": "15 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sword_short",
+    "name": "Sword, short & scabbard",
+    "category": "weapons",
+    "price": "8 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sword_twohanded",
+    "name": "Sword, two-handed",
+    "category": "weapons",
+    "price": "30 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "trident",
+    "name": "Trident",
+    "category": "weapons",
+    "price": "4 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "voulge",
+    "name": "Voulge",
+    "category": "weapons",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "belt",
+    "name": "Belt",
+    "category": "clothing",
+    "price": "3 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "boots_high_hard",
+    "name": "Boots, high, hard",
+    "category": "clothing",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "boots_high_soft",
+    "name": "Boots, high, soft",
+    "category": "clothing",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "boots_low_hard",
+    "name": "Boots, low, hard",
+    "category": "clothing",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "boots_low_soft",
+    "name": "Boots, low, soft",
+    "category": "clothing",
+    "price": "8 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "cap",
+    "name": "Cap",
+    "category": "clothing",
+    "price": "1 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "cloak",
+    "name": "Cloak",
+    "category": "clothing",
+    "price": "5 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "girdle_broad",
+    "name": "Girdle, broad",
+    "category": "clothing",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "girdle_normal",
+    "name": "Girdle, normal",
+    "category": "clothing",
+    "price": "10 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "hat",
+    "name": "Hat",
+    "category": "clothing",
+    "price": "7 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "robe",
+    "name": "Robe",
+    "category": "clothing",
+    "price": "6 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter"
+    ],
+    "tags": [
+      "cloth",
+      "wearable"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "belladonna",
+    "name": "Belladona, sprig",
+    "category": "herbs",
+    "price": "4 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "herbalist",
+      "outfitter"
+    ],
+    "tags": [
+      "natural",
+      "herb"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "garlic",
+    "name": "Garlic, bud",
+    "category": "herbs",
+    "price": "5 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "herbalist",
+      "outfitter"
+    ],
+    "tags": [
+      "natural",
+      "herb"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "wolfsbane",
+    "name": "Wolvesbane, sprig",
+    "category": "herbs",
+    "price": "10 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "herbalist",
+      "outfitter"
+    ],
+    "tags": [
+      "natural",
+      "herb"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "chicken",
+    "name": "Chicken",
+    "category": "livestock",
+    "price": "3 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "food"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "cow",
+    "name": "Cow",
+    "category": "livestock",
+    "price": "10 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "farm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "dog_guard",
+    "name": "Dog, guard",
+    "category": "livestock",
+    "price": "25 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "dog_hunting",
+    "name": "Dog, hunting",
+    "category": "livestock",
+    "price": "17 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "donkey",
+    "name": "Donkey",
+    "category": "livestock",
+    "price": "8 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "mount"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "goat",
+    "name": "Goat",
+    "category": "livestock",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "farm"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "hawk_large",
+    "name": "Hawk, large",
+    "category": "livestock",
+    "price": "40 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "hawk_small",
+    "name": "Hawk, small",
+    "category": "livestock",
+    "price": "18 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "horse_draft",
+    "name": "Horse, draft",
+    "category": "livestock",
+    "price": "30 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "mount",
+      "transport"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "horse_heavy_war",
+    "name": "Horse, heavy war",
+    "category": "livestock",
+    "price": "300 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "mount",
+      "military"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "horse_light_war",
+    "name": "Horse, light war",
+    "category": "livestock",
+    "price": "150 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "mount",
+      "military"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "horse_medium_war",
+    "name": "Horse, medium war",
+    "category": "livestock",
+    "price": "225 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "mount",
+      "military"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "horse_riding",
+    "name": "Horse, riding (light)",
+    "category": "livestock",
+    "price": "25 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "mount"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "mule",
+    "name": "Mule",
+    "category": "livestock",
+    "price": "20 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "mount",
+      "transport"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "ox",
+    "name": "Ox",
+    "category": "livestock",
+    "price": "15 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "farm",
+      "transport"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "pigeon",
+    "name": "Pigeon",
+    "category": "livestock",
+    "price": "2 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "piglet",
+    "name": "Piglet",
+    "category": "livestock",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "farm"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "pig",
+    "name": "Pig",
+    "category": "livestock",
+    "price": "3 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "farm"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "pony",
+    "name": "Pony",
+    "category": "livestock",
+    "price": "15 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "mount"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sheep",
+    "name": "Sheep",
+    "category": "livestock",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal",
+      "farm"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "songbird",
+    "name": "Songbird",
+    "category": "livestock",
+    "price": "4 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "animal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "backpack",
+    "name": "Backpack, leather",
+    "category": "misc",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "box_iron_large",
+    "name": "Box, iron, large",
+    "category": "misc",
+    "price": "28 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "box_iron_small",
+    "name": "Box, iron, small",
+    "category": "misc",
+    "price": "9 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "candle_tallow",
+    "name": "Candle, tallow",
+    "category": "misc",
+    "price": "1 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "light",
+      "tallow"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "candle_wax",
+    "name": "Candle, wax",
+    "category": "misc",
+    "price": "1 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "light",
+      "wax"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "case_bone_scroll",
+    "name": "Case, bone, map or scroll",
+    "category": "misc",
+    "price": "5 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "case_leather_scroll",
+    "name": "Case, leather, map or scroll",
+    "category": "misc",
+    "price": "15 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "chest_wood_large",
+    "name": "Chest, wooden, large",
+    "category": "misc",
+    "price": "17 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "chest_wood_small",
+    "name": "Chest, wooden, small",
+    "category": "misc",
+    "price": "8 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "lantern_bullseye",
+    "name": "Lantern, bullseye",
+    "category": "misc",
+    "price": "12 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "light",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "lantern_hooded",
+    "name": "Lantern, hooded",
+    "category": "misc",
+    "price": "7 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "light",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "mirror_large_metal",
+    "name": "Mirror, large metal",
+    "category": "misc",
+    "price": "10 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "tool",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "mirror_small_silver",
+    "name": "Mirror, small, silver",
+    "category": "misc",
+    "price": "20 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "tool",
+      "luxury",
+      "metal"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "oil_flask",
+    "name": "Oil, flask",
+    "category": "misc",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "light",
+      "imported"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "pole_10",
+    "name": "Pole, 10’",
+    "category": "misc",
+    "price": "3 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "wood",
+      "adventuring"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "pouch_large",
+    "name": "Pouch, belt, large",
+    "category": "misc",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "pouch_small",
+    "name": "Pouch, belt, small",
+    "category": "misc",
+    "price": "15 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "quiver_arrows_dozen",
+    "name": "Quiver, 1 doz. arrows cap.",
+    "category": "misc",
+    "price": "8 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "ammo",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "quiver_arrows_score",
+    "name": "Quiver, 1 score arrows cap.",
+    "category": "misc",
+    "price": "12 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "ammo",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "quiver_bolts_score",
+    "name": "Quiver, 1 score bolts cap.",
+    "category": "misc",
+    "price": "15 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "ammo",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "quiver_bolts_2score",
+    "name": "Quiver, 2 score bolts cap.",
+    "category": "misc",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "ammo",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "rope_50",
+    "name": "Rope, 50’",
+    "category": "misc",
+    "price": "4 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "rope",
+      "fiber",
+      "adventuring"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sack_large",
+    "name": "Sack, large",
+    "category": "misc",
+    "price": "16 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "cloth"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "sack_small",
+    "name": "Sack, small",
+    "category": "misc",
+    "price": "10 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "cloth"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "skin_water_wine",
+    "name": "Skin for water or wine",
+    "category": "misc",
+    "price": "15 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "container",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "spike_iron_large",
+    "name": "Spike, iron, large",
+    "category": "misc",
+    "price": "1 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "metal",
+      "adventuring"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "thieves_tools",
+    "name": "Thieves’ picks & tools",
+    "category": "misc",
+    "price": "30 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "tool",
+      "metal",
+      "adventuring"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "tinderbox",
+    "name": "Tinder Box, with flint & steel",
+    "category": "misc",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "light",
+      "tool"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "torch",
+    "name": "Torch",
+    "category": "misc",
+    "price": "1 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith",
+      "herbalist"
+    ],
+    "tags": [
+      "light",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "ale_pint",
+    "name": "Ale, pint",
+    "category": "provisions",
+    "price": "1 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food",
+      "drink"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "beer_pint",
+    "name": "Beer, small, pint",
+    "category": "provisions",
+    "price": "5 cp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food",
+      "drink"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "food_meal_merchant",
+    "name": "Food, merchant’s meal",
+    "category": "provisions",
+    "price": "1 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "food_meal_rich",
+    "name": "Food, rich meal",
+    "category": "provisions",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food",
+      "luxury"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "grain_horse_day",
+    "name": "Grain, horse meal, 1 day",
+    "category": "provisions",
+    "price": "1 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food",
+      "animal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "mead_pint",
+    "name": "Mead, pint",
+    "category": "provisions",
+    "price": "5 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food",
+      "drink"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "rations_iron_week",
+    "name": "Rations, iron, 1 week",
+    "category": "provisions",
+    "price": "5 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food",
+      "adventuring"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "rations_standard_week",
+    "name": "Rations, standard, 1 week",
+    "category": "provisions",
+    "price": "3 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food",
+      "adventuring"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "wine_good_pint",
+    "name": "Wine, pint, good",
+    "category": "provisions",
+    "price": "10 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food",
+      "drink",
+      "luxury"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "wine_watered_pint",
+    "name": "Wine, pint, watered",
+    "category": "provisions",
+    "price": "5 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable",
+      "herbalist"
+    ],
+    "tags": [
+      "food",
+      "drink"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "beads_prayer",
+    "name": "Beads, Prayer",
+    "category": "religious",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "herbalist"
+    ],
+    "tags": [
+      "religious"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "incense_stick",
+    "name": "Incense, stick",
+    "category": "religious",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "herbalist"
+    ],
+    "tags": [
+      "religious"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "symbol_holy_iron",
+    "name": "Symbol, Holy, iron",
+    "category": "religious",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "herbalist"
+    ],
+    "tags": [
+      "religious",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "symbol_holy_silver",
+    "name": "Symbol, Holy, silver",
+    "category": "religious",
+    "price": "50 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "herbalist"
+    ],
+    "tags": [
+      "religious",
+      "metal",
+      "luxury"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "symbol_holy_wood",
+    "name": "Symbol, Holy, wooden",
+    "category": "religious",
+    "price": "7 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "herbalist"
+    ],
+    "tags": [
+      "religious",
+      "wood"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "water_holy_vial",
+    "name": "Water, Holy, vial",
+    "category": "religious",
+    "price": "25 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "herbalist"
+    ],
+    "tags": [
+      "religious"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "barding_chain",
+    "name": "Barding, chain",
+    "category": "tack",
+    "price": "250 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "animal",
+      "armor",
+      "metal"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "barding_leather",
+    "name": "Barding, leather",
+    "category": "tack",
+    "price": "100 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "animal",
+      "armor",
+      "leather"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "barding_plate",
+    "name": "Barding, plate",
+    "category": "tack",
+    "price": "500 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "animal",
+      "armor",
+      "metal"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "bit_bridle",
+    "name": "Bit and Bridle",
+    "category": "tack",
+    "price": "15 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "animal",
+      "tack",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "harness",
+    "name": "Harness",
+    "category": "tack",
+    "price": "12 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "animal",
+      "tack",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "saddle",
+    "name": "Saddle",
+    "category": "tack",
+    "price": "10 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "animal",
+      "tack",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "saddlebags_large",
+    "name": "Saddle Bags, large",
+    "category": "tack",
+    "price": "4 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "animal",
+      "tack",
+      "leather",
+      "container"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "saddlebags_small",
+    "name": "Saddle Bags, small",
+    "category": "tack",
+    "price": "3 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "animal",
+      "tack",
+      "leather",
+      "container"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "saddle_blanket",
+    "name": "Saddle Blanket",
+    "category": "tack",
+    "price": "3 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "animal",
+      "tack",
+      "cloth"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "barge_small",
+    "name": "Barge (or Raft), small",
+    "category": "transport",
+    "price": "50 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "water"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "boat_small",
+    "name": "Boat, small",
+    "category": "transport",
+    "price": "75 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "water"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "boat_long",
+    "name": "Boat, long",
+    "category": "transport",
+    "price": "150 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "water"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "cart",
+    "name": "Cart",
+    "category": "transport",
+    "price": "50 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "land"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "galley_large",
+    "name": "Galley, large",
+    "category": "transport",
+    "price": "25000 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "water"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "galley_small",
+    "name": "Galley, small",
+    "category": "transport",
+    "price": "10000 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "water"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "ship_merchant_large",
+    "name": "Ship, merchant, large",
+    "category": "transport",
+    "price": "15000 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "water"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "ship_merchant_small",
+    "name": "Ship, merchant, small",
+    "category": "transport",
+    "price": "5000 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "water"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "ship_war",
+    "name": "Ship, war",
+    "category": "transport",
+    "price": "20000 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "water",
+      "military"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "wagon",
+    "name": "Wagon",
+    "category": "transport",
+    "price": "150 gp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "stable"
+    ],
+    "tags": [
+      "transport",
+      "land"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": false
+  },
+  {
+    "key": "bronze_plate",
+    "name": "Bronze Plate Armor",
+    "category": "armor",
+    "price": "100 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "field_plate",
+    "name": "Field Plate Armor",
+    "category": "armor",
+    "price": "2000 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "full_plate",
+    "name": "Full Plate Armor",
+    "category": "armor",
+    "price": "4000 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "armor",
+      "metal"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "shield_buckler",
+    "name": "Shield, buckler",
+    "category": "armor",
+    "price": "5 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter",
+      "trading_post"
+    ],
+    "tags": [
+      "armor",
+      "wood",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "aklys",
+    "name": "Aklys",
+    "category": "weapons",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "atlatl",
+    "name": "Atlatl",
+    "category": "weapons",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "missile"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "blowgun",
+    "name": "Blowgun",
+    "category": "weapons",
+    "price": "20 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "missile"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "blowgun_needle",
+    "name": "Blowgun Needle",
+    "category": "ammo",
+    "price": "1 sp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "ammo"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "caltrop",
+    "name": "Caltrop",
+    "category": "misc",
+    "price": "2 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "smith"
+    ],
+    "tags": [
+      "metal",
+      "adventuring"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "crossbow_hand",
+    "name": "Crossbow, hand",
+    "category": "weapons",
+    "price": "300 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "wood",
+      "crossbow"
+    ],
+    "tier": "rare",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "quarrels_hand_crossbow",
+    "name": "Quarrels for hand crossbow",
+    "category": "ammo",
+    "price": "100 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "ammo",
+      "crossbow"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "garrot",
+    "name": "Garrot",
+    "category": "weapons",
+    "price": "1 ep",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "rope"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "harpoon",
+    "name": "Harpoon",
+    "category": "weapons",
+    "price": "5 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "water"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "hook_fauchard",
+    "name": "Hook Fauchard",
+    "category": "weapons",
+    "price": "6 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "knife",
+    "name": "Knife & scabbard",
+    "category": "weapons",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "lasso",
+    "name": "Lasso",
+    "category": "misc",
+    "price": "5 sp",
+    "shopTypes": [
+      "baseline",
+      "trading_post",
+      "outfitter",
+      "stable"
+    ],
+    "tags": [
+      "rope",
+      "tool"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "man_catcher",
+    "name": "Man Catcher",
+    "category": "weapons",
+    "price": "25 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal",
+      "polearm"
+    ],
+    "tier": "scarce",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "sap",
+    "name": "Sap",
+    "category": "weapons",
+    "price": "1 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "spiked_buckler",
+    "name": "Spiked Buckler",
+    "category": "armor",
+    "price": "10 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "armor",
+      "metal",
+      "weapon"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "staff_sling",
+    "name": "Staff Sling",
+    "category": "weapons",
+    "price": "2 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "wood",
+      "missile"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "sword_falchion",
+    "name": "Sword, falchion, and scabbard",
+    "category": "weapons",
+    "price": "10 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "sword_khopesh",
+    "name": "Sword, khopesh",
+    "category": "weapons",
+    "price": "10 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "metal"
+    ],
+    "tier": "uncommon",
+    "weight": 0,
+    "ua": true
+  },
+  {
+    "key": "whip",
+    "name": "Whip",
+    "category": "weapons",
+    "price": "3 gp",
+    "shopTypes": [
+      "baseline",
+      "smith",
+      "outfitter"
+    ],
+    "tags": [
+      "weapon",
+      "leather"
+    ],
+    "tier": "common",
+    "weight": 0,
+    "ua": true
+  }
+];
+
+  const SPELLS = {
+    cleric: { 1: ['Bless', 'Command', 'Create Water', 'Cure Light Wounds', 'Detect Evil', 'Detect Magic', 'Light', 'Protection from Evil', 'Purify Food & Drink', 'Remove Fear', 'Resist Cold', 'Sanctuary'] },
+    druid: { 1: ['Animal Friendship', 'Detect Magic', 'Detect Snares & Pits', 'Locate Animals or Plants', 'Predict Weather', 'Produce Flame', 'Purify Water', 'Shillelagh'] },
+    magicuser: { 1: ['Charm Person', 'Detect Magic', 'Feather Fall', 'Find Familiar', 'Hold Portal', 'Light', 'Magic Missile', 'Protection from Evil', 'Read Magic', 'Shield', 'Sleep', 'Unseen Servant', 'Ventriloquism', 'Write'] },
+    illusionist: { 1: ['Audible Glamer', 'Change Self', 'Color Spray', 'Darkness', 'Detect Illusion', 'Detect Invisibility', 'Gaze Reflection', 'Hypnotism', 'Light', 'Phantasmal Force', 'Wall of Fog'] },
+    paladin: {},
+    ranger: {}
+  };
+  const LEVEL_ONE_SPELL_COUNT = { cleric: { 1: 1 }, druid: { 1: 1 }, magicuser: { 1: 1 }, illusionist: { 1: 1 }, paladin: {}, ranger: {} };
+
+  const AGE_TABLE = {
+    'Human': { base: 15, mod: [1,4] }, 'Dwarf': { base: 40, mod: [5, 6] }, 'Elf': { base: 100, mod: [5, 6] },
+    'Gnome': { base: 60, mod: [3, 12] }, 'Half-Elf': { base: 20, mod: [2, 6] }, 'Halfling': { base: 20, mod: [3, 4] }, 'Half-Orc': { base: 13, mod: [1, 4] }
+  };
+
+  const HEIGHT_WEIGHT = {
+    'Human': { male: { h: [58, 10], w: [140, 60] }, female: { h: [53, 10], w: [100, 40] } },
+    'Dwarf': { male: { h: [45, 4], w: [130, 40] }, female: { h: [43, 4], w: [105, 30] } },
+    'Elf': { male: { h: [55, 10], w: [90, 30] }, female: { h: [50, 10], w: [70, 25] } },
+    'Gnome': { male: { h: [38, 6], w: [72, 20] }, female: { h: [36, 6], w: [68, 20] } },
+    'Half-Elf': { male: { h: [55, 12], w: [110, 45] }, female: { h: [53, 12], w: [85, 35] } },
+    'Halfling': { male: { h: [32, 8], w: [52, 15] }, female: { h: [30, 8], w: [48, 12] } },
+    'Half-Orc': { male: { h: [58, 12], w: [150, 60] }, female: { h: [53, 12], w: [120, 40] } }
+  };
+
+  const SAVE_CLASS_ID = { cleric: 1, druid: 2, fighter: 3, magicuser: 4, thief: 5, monk: 6, assassin: 7, paladin: 8, ranger: 8 };
+  const SHEET_DEFAULTS = { toggle_thief_skills: 1, toggle_caster2: 1, toggle_exceptional: 1, toggle_psionics: 0, toggle_macros: 1, autocalc_ac: 1, autocalc_movement_flag: 1, autofill_matrix: 1, autofill_thief: 1 };
+
+  const H = {
+    esc: (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
+    box: (c) => `<div style="background:#000;color:#fff;border:2px solid #aa2222;padding:12px;font-size:16px;line-height:1.4;">${c}</div>`,
+    title: (t) => `<div style="font-weight:bold;font-size:18px;color:#fff;border-bottom:2px solid #aa2222;margin-bottom:8px;padding-bottom:4px;">${H.esc(t)}</div>`,
+    row: (c) => `<div style="margin:4px 0;">${c}</div>`,
+    small: (c) => `<div style="font-size:13px;color:#fff;">${c}</div>`,
+    btn: (label, cmd) => `<a href="${H.esc(cmd)}" style="background:#111;color:#fff;border:2px solid #aa2222;border-radius:4px;padding:8px 14px;margin:3px;display:inline-block;text-decoration:none;font-size:15px;font-weight:bold;">${H.esc(label)}</a>`,
+    btnColor: (label, cmd, fg, bg) => `<a href="${H.esc(cmd)}" style="background:${bg};color:#fff;border:2px solid #aa2222;border-radius:4px;padding:8px 14px;margin:3px;display:inline-block;text-decoration:none;font-size:15px;font-weight:bold;">${H.esc(label)}</a>`,
+    pill: (label, fg, bg) => `<span style="background:${bg};color:#fff;border:2px solid #aa2222;border-radius:4px;padding:8px 14px;margin:3px;display:inline-block;font-size:15px;font-weight:bold;">${H.esc(label)}</span>`
+  };
+
+  const initState = () => { state[SCRIPT] = state[SCRIPT] || { sessions: {} }; };
+  const getSession = (tokenId) => {
+    const s = state[SCRIPT].sessions[tokenId];
+    if (!s) return null;
+    s.cart = s.cart || [];
+    s.purchases = s.purchases || [];
+    s.startingMoneyRolls = s.startingMoneyRolls || [];
+    return s;
+  };
+  const setSession = (tokenId, session) => { state[SCRIPT].sessions[tokenId] = session; };
+  const clearSession = (tokenId) => { delete state[SCRIPT].sessions[tokenId]; };
+
+  const playerName = (playerId) => { const p = getObj('player', playerId); return p ? p.get('_displayname') : 'player'; };
+  const whisperToPlayer = (playerId, html) => sendChat(SCRIPT, `/w "${playerName(playerId)}" ${html}`);
+  const whisperToGM = (html) => sendChat(SCRIPT, `/w gm ${html}`);
+  const whisperBoth = (playerId, html) => {
+    whisperToPlayer(playerId, html);
+    if (!playerIsGM(playerId)) whisperToGM(html);
+  };
+
+  const makeRowId = () => {
+    let text = '';
+    const chars = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+    for (let i = 0; i < 20; i++) text += chars.charAt(Math.floor(Math.random() * chars.length));
+    return text;
+  };
+
+  const getSelectedToken = (msg) => {
+    if (!msg.selected || msg.selected.length !== 1) return null;
+    return getObj('graphic', msg.selected[0]._id);
+  };
+
+  const findAttr = (characterId, name) => findObjs({ type: 'attribute', characterid: characterId, name })[0];
+  const sanitizeAttrValue = (value) => {
+    if (value === null || typeof value === 'undefined') return '';
+    if (typeof value === 'number' && !isFinite(value)) return '';
+    if (typeof value === 'string' && value.trim().toLowerCase() === 'nan') return '';
+    return value;
+  };
+
+  const setAttr = (characterId, name, current, max) => {
+    let attr = findAttr(characterId, name);
+    if (!attr) attr = createObj('attribute', { characterid: characterId, name, current: '' });
+    attr.set('current', sanitizeAttrValue(current));
+    if (typeof max !== 'undefined') attr.set('max', sanitizeAttrValue(max));
+    return attr;
+  };
+
+  const clearRepeatingSection = (characterId, section) => {
+    findObjs({ type: 'attribute', characterid: characterId }).forEach(attr => {
+      const n = attr.get('name');
+      if (n.indexOf(section + '_') === 0) attr.remove();
+    });
+  };
+
+  const getEquipmentRows = (characterId) => {
+    const attrs = findObjs({ type: 'attribute', characterid: characterId });
+    const rows = {};
+    attrs.forEach(attr => {
+      const n = attr.get('name');
+      const m = n.match(/^repeating_equipment_([^_]+)_(.+)$/);
+      if (!m) return;
+      const rowId = m[1];
+      const field = m[2];
+      rows[rowId] = rows[rowId] || {};
+      rows[rowId][field] = attr.get('current');
+      rows[rowId]._rowId = rowId;
+    });
+    return Object.values(rows);
+  };
+
+  const clearWeaponRows = (characterId) => clearRepeatingSection(characterId, REPEAT.weapons);
+
+  const getPurchasedWeapons = (session) => (session && session.purchases ? session.purchases : []).filter(item => item && item.type === 'weapon' && item.weaponName);
+  const getPurchasedArmor = (session) => (session && session.purchases ? session.purchases : []).filter(item => item && item.category === 'armor');
+
+  const renderWeaponSyncMenu = (playerId, tokenId, session) => {
+    const weapons = getPurchasedWeapons(session);
+    const rows = weapons.map((item, idx) =>
+      H.row(H.btn(`Equip ${item.name}`, `${CMD} --equipweaponitem|${tokenId}|${idx}`))
+    ).join('') || H.row('No purchased weapons available.');
+    const html = H.box(
+      H.title('Equip Purchased Weapons') +
+      H.row('Choose one weapon to move to the attack matrix.') +
+      rows +
+      H.row(H.btn('Back', `${CMD} --equipmenu|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const renderArmorSyncMenu = (playerId, tokenId, session) => {
+    const armor = getPurchasedArmor(session);
+    const rows = armor.map((item, idx) =>
+      H.row(H.btn(`Equip ${item.name}`, `${CMD} --equiparmoritem|${tokenId}|${idx}`))
+    ).join('') || H.row('No purchased armor available.');
+    const html = H.box(
+      H.title('Equip Worn Armor') +
+      H.row('Choose one armor item to apply.') +
+      rows +
+      H.row(H.btn('Back', `${CMD} --equipmenu|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const syncOneWeaponFromPurchase = (session, idx) => {
+    const weapons = getPurchasedWeapons(session);
+    const item = weapons[idx];
+    if (!session || !session.characterId || !item) return false;
+    const wName = normalizeWeaponName(item.weaponName || item.name);
+    const wd = WEAPON_DATA[wName] || {};
+    addRepeatingRow(session.characterId, REPEAT.weapons, {
+      weapon_name: item.weaponName || item.name,
+      weapon_damagesmallmedium: wd.dmg_sm || '',
+      weapon_damagelarge: wd.dmg_lg || '',
+      weapon_attackdmgbonus: 0,
+      weapon_attackdmgtype: wd.dmg_type || '',
+      weapon_attack_type: wd.attack_type || 'Melee',
+      weapon_speed: wd.speed || '',
+      weapon_length: wd.length || '',
+      weapon_space: wd.space || '',
+      weapon_quantity: Number(item.quantity || 1),
+      weapon_weight: baseItemWeight(item),
+      weapon_cost: String(item.price || (item.priceGp !== undefined ? `${item.priceGp} gp` : ''))
+    });
+    return true;
+  };
+
+  const syncOneArmorFromPurchase = (session, idx) => {
+    const armor = getPurchasedArmor(session);
+    const item = armor[idx];
+    if (!session || !session.characterId || !item) return false;
+    const setup = armorFieldSetup(item.name);
+    if (!setup) return false;
+    if (setup.slot === 'shield') {
+      setAttr(session.characterId, ATTR.armorShield, item.name);
+      setAttr(session.characterId, ATTR.armorShieldAC, setup.ac);
+    } else if (setup.slot === 'helmet') {
+      setAttr(session.characterId, ATTR.armorHelmet, item.name);
+      setAttr(session.characterId, ATTR.armorHelmetAC, setup.ac);
+    } else if (setup.slot === 'armor') {
+      setAttr(session.characterId, ATTR.armorType, item.name);
+      setAttr(session.characterId, ATTR.armorTypeAC, setup.ac);
+    }
+    return true;
+  };
+
+  const isArmorName = (name) => !!armorFieldSetup(name);
+  const isWeaponName = (name) => !!WEAPON_DATA[normalizeWeaponName(name)];
+
+  const syncWeaponsFromEquipment = (session) => {
+    if (!session || !session.characterId) return;
+    clearWeaponRows(session.characterId);
+    (session.purchases || []).forEach(item => {
+      if (!(item.type === 'weapon' && item.weaponName)) return;
+      const wName = normalizeWeaponName(item.weaponName);
+      const wd = WEAPON_DATA[wName] || {};
+      addRepeatingRow(session.characterId, REPEAT.weapons, {
+        weapon_name: item.weaponName,
+        weapon_damagesmallmedium: wd.dmg_sm || '',
+        weapon_damagelarge: wd.dmg_lg || '',
+        weapon_attackdmgbonus: 0,
+        weapon_attackdmgtype: wd.dmg_type || '',
+        weapon_attack_type: wd.attack_type || 'Melee',
+        weapon_speed: wd.speed || '',
+        weapon_length: wd.length || '',
+        weapon_space: wd.space || '',
+        weapon_quantity: Number(item.quantity || 1),
+        weapon_weight: baseItemWeight(item),
+        weapon_cost: String(item.price || (item.priceGp !== undefined ? `${item.priceGp} gp` : ''))
+      });
+    });
+  };
+
+  const syncArmorFromEquipment = (session) => {
+    if (!session || !session.characterId) return;
+    let armorType = '';
+    let armorShield = '';
+    let armorHelmet = '';
+    let armorTypeAC = '';
+    let armorShieldAC = '';
+    let armorHelmetAC = '';
+
+    (session.purchases || []).forEach(item => {
+      if (item.category !== 'armor') return;
+      const setup = armorFieldSetup(item.name);
+      if (!setup) return;
+      if (setup.slot === 'shield' && !armorShield) {
+        armorShield = item.name;
+        armorShieldAC = setup.ac;
+      } else if (setup.slot === 'helmet' && !armorHelmet) {
+        armorHelmet = item.name;
+        armorHelmetAC = setup.ac;
+      } else if (setup.slot === 'armor' && !armorType) {
+        armorType = item.name;
+        armorTypeAC = setup.ac;
+      }
+    });
+
+    setAttr(session.characterId, ATTR.armorType, armorType || '');
+    setAttr(session.characterId, ATTR.armorTypeAC, armorTypeAC || '');
+    setAttr(session.characterId, ATTR.armorShield, armorShield || '');
+    setAttr(session.characterId, ATTR.armorShieldAC, armorShieldAC || '');
+    setAttr(session.characterId, ATTR.armorHelmet, armorHelmet || '');
+    setAttr(session.characterId, ATTR.armorHelmetAC, armorHelmetAC || '');
+  };
+
+  const getCurrentIntelligenceSpellData = (intel) => {
+    let know = 0, minS = 0, maxS = 0;
+    if (intel === 9) { know = 35; minS = 4; maxS = 6; }
+    else if (intel >= 10 && intel <= 12) { know = 45; minS = 5; maxS = 7; }
+    else if (intel >= 13 && intel <= 14) { know = 55; minS = 6; maxS = 9; }
+    else if (intel >= 15 && intel <= 16) { know = 65; minS = 7; maxS = 11; }
+    else if (intel === 17) { know = 75; minS = 8; maxS = 14; }
+    else if (intel >= 18) { know = 85; minS = 9; maxS = 18; }
+    return { know, minS, maxS };
+  };
+
+  const getCurrentCharismaData = (cha) => {
+    let maxHench = 4, loyalty = '0', reaction = '0';
+    if (cha <= 3) { maxHench = 1; loyalty = '-30'; reaction = '-25'; }
+    else if (cha === 4) { maxHench = 1; loyalty = '-25'; reaction = '-20'; }
+    else if (cha === 5) { maxHench = 2; loyalty = '-20'; reaction = '-15'; }
+    else if (cha === 6) { maxHench = 2; loyalty = '-15'; reaction = '-10'; }
+    else if (cha === 7) { maxHench = 3; loyalty = '-10'; reaction = '-05'; }
+    else if (cha === 8) { maxHench = 3; loyalty = '-05'; reaction = '0'; }
+    else if (cha >= 9 && cha <= 11) { maxHench = 4; loyalty = '0'; reaction = '0'; }
+    else if (cha === 12) { maxHench = 5; loyalty = '0'; reaction = '0'; }
+    else if (cha === 13) { maxHench = 5; loyalty = '0'; reaction = '+05'; }
+    else if (cha === 14) { maxHench = 6; loyalty = '+05'; reaction = '+10'; }
+    else if (cha === 15) { maxHench = 7; loyalty = '+15'; reaction = '+15'; }
+    else if (cha === 16) { maxHench = 8; loyalty = '+20'; reaction = '+25'; }
+    else if (cha === 17) { maxHench = 10; loyalty = '+30'; reaction = '+30'; }
+    else if (cha >= 18) { maxHench = 15; loyalty = '+40'; reaction = '+35'; }
+    return { maxHench, loyalty, reaction };
+  };
+
+  const liveWriteAbilityAndDerived = (characterId, ability, value) => {
+    setAttr(characterId, ATTR[ability], value);
+    if (ability === 'intelligence') {
+      const d = getCurrentIntelligenceSpellData(value);
+      setAttr(characterId, ATTR.knowspell, d.know);
+      setAttr(characterId, ATTR.minspells, d.minS);
+      setAttr(characterId, ATTR.maxspells, d.maxS);
+    }
+    if (ability === 'charisma') {
+      const d = getCurrentCharismaData(value);
+      setAttr(characterId, ATTR.maximumhenchmen, d.maxHench);
+      setAttr(characterId, ATTR.loyaltybonus, d.loyalty);
+      setAttr(characterId, ATTR.reactionbonus, d.reaction);
+    }
+  };
+
+  const recomputeRaceAdjustedStats = (session) => {
+    if (!session.baseStats) return null;
+    if (!session.race) {
+      session.finalStats = JSON.parse(JSON.stringify(session.baseStats));
+      session.appliedRaceAdjustments = null;
+      return session.finalStats;
+    }
+    const adjusted = applyRacialAdjustments(session.baseStats, session.race);
+    session.finalStats = adjusted;
+    session.appliedRaceAdjustments = session.race;
+    return adjusted;
+  };
+
+  const liveWriteAllAssignedStats = (session) => {
+    if (!session.characterId || !session.baseStats) return;
+    recomputeRaceAdjustedStats(session);
+    const s = session.finalStats || session.baseStats;
+    liveWriteAbilityAndDerived(session.characterId, 'strength', s.strength);
+    liveWriteAbilityAndDerived(session.characterId, 'intelligence', s.intelligence);
+    liveWriteAbilityAndDerived(session.characterId, 'wisdom', s.wisdom);
+    liveWriteAbilityAndDerived(session.characterId, 'dexterity', s.dexterity);
+    liveWriteAbilityAndDerived(session.characterId, 'constitution', s.constitution);
+    liveWriteAbilityAndDerived(session.characterId, 'charisma', s.charisma);
+  };
+
+  const liveWriteRaceClassLevelAlignment = (session) => {
+    if (!session.characterId) return;
+    if (session.race) {
+      setAttr(session.characterId, ATTR.race, session.race);
+      setAttr(session.characterId, ATTR.size, RACE_DATA[session.race].size);
+      setAttr(session.characterId, ATTR.languages, (session.languages || []).join(', '));
+    }
+    if (session.className) {
+      setAttr(session.characterId, ATTR.charClass, session.className);
+      setAttr(session.characterId, ATTR.hitdice, CLASS_HITDICE[session.className] || '1d6');
+      setAttr(session.characterId, ATTR.savesClass, aggregateSaveClass(session.className));
+      setAttr(session.characterId, ATTR.syncMatrixClass, 1);
+    }
+    setAttr(session.characterId, ATTR.level, session.level || 1);
+    setAttr(session.characterId, ATTR.matrixLevel, session.level || 1);
+    setAttr(session.characterId, ATTR.savesLevel, session.level || 1);
+    setAttr(session.characterId, ATTR.xp, session.xp || 0);
+    if (session.alignment) setAttr(session.characterId, ATTR.alignment, session.alignment);
+    if (session.exceptionalStrength) setAttr(session.characterId, ATTR.exceptionalStrength, session.exceptionalStrength);
+  };
+
+  const applyDefaultLevelDerived = (session) => {
+    session.level = Math.max(1, parseInt(session.level || 1, 10) || 1);
+    if (session.className) {
+      session.xp = xpForLevel(session.className, session.level);
+      session.movement = movementForRaceClass(session.race || 'Human', session.className);
+      session.movementHeavy = Math.max(3, session.movement - 3);
+      session.movementLoad = Math.max(3, session.movement - 6);
+      session.movementMax = session.movement + 3;
+      const hp = hpForLevel(session.className, session.level, constitutionHpMod((session.finalStats && session.finalStats.constitution) || 10));
+      session.hpTotal = hp.total;
+      session.hpLog = hp.log;
+      if (!session.startingWalletGp || session.startingWalletGp <= 0) {
+        session.walletGp = moneyForClass(session.className);
+        session.startingWalletGp = session.walletGp;
+        session.startingMoneyFormula = 'By class';
+        session.startingMoneyRolls = [];
+      }
+    }
+  };
+
+  const liveWriteHpAndMovement = (session) => {
+    if (!session.characterId) return;
+    setAttr(session.characterId, ATTR.hp, session.hpTotal || 1, session.hpTotal || 1);
+    setAttr(session.characterId, ATTR.movement, session.movement || 12);
+    setAttr(session.characterId, ATTR.movementHeavy, session.movementHeavy || Math.max(3, (session.movement || 12) - 3));
+    setAttr(session.characterId, ATTR.movementLoad, session.movementLoad || Math.max(3, (session.movement || 12) - 6));
+    setAttr(session.characterId, ATTR.movementMax, session.movementMax || (session.movement || 12) + 3);
+  };
+
+  const liveWriteDetails = (session) => {
+    if (!session.characterId) return;
+    if (session.gender !== undefined) setAttr(session.characterId, ATTR.gender, session.gender || '');
+    if (session.age !== undefined) setAttr(session.characterId, ATTR.age, session.age || '');
+    if (session.height !== undefined) setAttr(session.characterId, ATTR.height, session.height || '');
+    if (session.weight !== undefined) setAttr(session.characterId, ATTR.weight, session.weight || '');
+    if (session.eyes !== undefined) setAttr(session.characterId, ATTR.eyes, session.eyes || '');
+    if (session.hair !== undefined) setAttr(session.characterId, ATTR.hair, session.hair || '');
+  };
+
+  const forceDerivedRefresh = (session) => {
+    if (!session || !session.characterId) return;
+    if (session.baseStats) {
+      liveWriteAllAssignedStats(session);
+      // second pass helps worker-driven derived fields on this sheet
+      liveWriteAllAssignedStats(session);
+    }
+    liveWriteRaceClassLevelAlignment(session);
+    liveWriteRaceClassLevelAlignment(session);
+    liveWriteHpAndMovement(session);
+    liveWriteHpAndMovement(session);
+    liveWriteDetails(session);
+    liveWriteCoins(session);
+  };
+
+  const liveWriteCoins = (session) => {
+    if (!session.characterId) return;
+    const coins = goldToCoins(session.walletGp || 0);
+    session.coins = coins;
+    setAttr(session.characterId, ATTR.gp, coins.gp);
+    setAttr(session.characterId, ATTR.sp, coins.sp);
+    setAttr(session.characterId, ATTR.ep, coins.ep);
+    setAttr(session.characterId, ATTR.cp, coins.cp);
+    setAttr(session.characterId, ATTR.pp, coins.pp);
+  };
+
+  const liveAddPurchasedItem = (session, item) => {
+    if (!session || !session.characterId || !item) return;
+
+    const itemName = safeItemName(item);
+    const qty = clamp(parseInt(item.quantity, 10) || 1, 1, 9999);
+    const weightValue = parseNumber(
+      item.weight,
+      baseItemWeight(Object.assign({}, item, { name: itemName }))
+    );
+    const costDisplay = String(item.price || '').trim();
+
+    addEquipmentRow(session.characterId, itemName, qty, weightValue, costDisplay, 0);
+  };
+
+  const addRepeatingRow = (characterId, section, values) => {
+    const rowId = makeRowId();
+    Object.keys(values).forEach((field) => setAttr(characterId, `${section}_${rowId}_${field}`, sanitizeAttrValue(values[field])));
+    return rowId;
+  };
+
+  const classArmorRule = (className) => {
+    const c = CLASS_DATA[className];
+    if (!c) return { armor: 'all', shield: 'all' };
+    if (c.type === 'multi') {
+      if (c.classes.some(n => /Magic-User|Illusionist/.test(n)) && !c.classes.some(n => /Fighter/.test(n))) return { armor: [], shield: [] };
+      if (c.classes.some(n => /Thief|Assassin/.test(n))) return { armor: ['Padded Armor', 'Leather Armor', 'Studded Leather Armor'], shield: [] };
+      return { armor: 'all', shield: 'all' };
+    }
+    return CLASS_ARMOR_RULES[className] || { armor: 'all', shield: 'all' };
+  };
+
+
+  const normalizeWeaponName = (name) => {
+    const n = String(name || '').trim();
+    const aliases = {
+      'Long Sword': 'Sword, Long',
+      'Sword, Long': 'Sword, Long',
+      'Sword, long & scabbard': 'Sword, Long',
+      'Short Sword': 'Sword, Short',
+      'Sword, Short': 'Sword, Short',
+      'Sword, short & scabbard': 'Sword, Short',
+      'Broad Sword': 'Sword, Broad',
+      'Sword, Broad': 'Sword, Broad',
+      'Two-handed Sword': 'Sword, Two-handed',
+      'Sword, Two-handed': 'Sword, Two-handed',
+      'Sword, two-handed': 'Sword, Two-handed',
+      'Dagger and scabbard': 'Dagger',
+      'Dagger': 'Dagger',
+      'Quarterstaff': 'Staff, Quarter',
+      'Staff': 'Staff, Quarter',
+      'Staff, Quarter': 'Staff, Quarter',
+      'Staff Sling': 'Staff Sling',
+      'Bow, Short': 'Bow, Short',
+      'Bow, short': 'Bow, Short',
+      'Bow, Long': 'Bow, Long',
+      'Bow, long': 'Bow, Long',
+      'Crossbow, heavy': 'Crossbow, Heavy',
+      'Crossbow, Heavy': 'Crossbow, Heavy',
+      'Crossbow, light': 'Crossbow, Light',
+      'Crossbow, Light': 'Crossbow, Light',
+      'Axe, hand or throwing': 'Axe, Hand or Throwing',
+      'Axe, hand': 'Axe, Hand or Throwing',
+      'Mace': 'Mace, Horseman’s',
+      'Mace, footman’s': 'Mace, Footman’s',
+      'Mace, horseman’s': 'Mace, Horseman’s',
+      'Hammer': 'Hammer',
+      'War hammer': 'Hammer',
+      'Hammer, war': 'Hammer',
+      'Flail': 'Flail, Footman’s',
+      'Flail, footman’s': 'Flail, Footman’s',
+      'Flail, horseman’s': 'Flail, Horseman’s',
+      'Sling': 'Sling',
+      'Sling bullet': 'Sling Bullet',
+      'Sling stone': 'Sling Stone',
+      'Club': 'Club',
+      'Morning Star': 'Morning Star',
+      'Scimitar': 'Scimitar',
+      'Dart': 'Dart',
+      'Spear': 'Spear',
+      'Spetum': 'Spetum',
+      'Harpoon': 'Harpoon',
+      'Bardiche': 'Bardiche',
+      'Sword, khopesh': 'Sword, Khopesh',
+      'Sword, Khopesh': 'Sword, Khopesh',
+      'Javelin': 'Javelin',
+      'Jo Stick': 'Jo Stick',
+      'Bo Stick': 'Bo Stick',
+      'Arrow, normal, dozen': 'Arrow',
+      'Arrow, normal, single': 'Arrow'
+    };
+    return aliases[n] || n;
+  };
+
+  const weaponAllowedForClass = (className, itemName) => {
+    const c = CLASS_DATA[className];
+    const normalized = normalizeWeaponName(itemName);
+    if (!className) return true;
+    if (c && c.type === 'multi') {
+      if (c.classes.some(n => /Thief|Assassin/.test(n))) {
+        // stricter thief side for combinations using thief functions
+        const thiefSet = CLASS_WEAPON_RULES['Thief'];
+        return thiefSet === 'all' || thiefSet.indexOf(normalized) !== -1;
+      }
+      if (c.classes.some(n => /Magic-User|Illusionist/.test(n)) && !c.classes.some(n => /Fighter/.test(n))) {
+        const muSet = CLASS_WEAPON_RULES['Magic-User'];
+        return muSet.indexOf(normalized) !== -1;
+      }
+      return true;
+    }
+    const rule = CLASS_WEAPON_RULES[className];
+    if (!rule || rule === 'all') return true;
+    return rule.indexOf(normalized) !== -1;
+  };
+
+  const itemIsWeapon = (item) => item && (item.category === 'weapons' || (Array.isArray(item.tags) && item.tags.indexOf('weapon') !== -1));
+  const safeItemName = (item) => {
+    if (!item) return 'Unknown Item';
+    return String(item.name || item.itemName || item.title || item.label || item.key || 'Unknown Item');
+  };
+  const canClassUseItem = (className, itemName) => {
+    const c = CLASS_DATA[className];
+    const name = String(itemName || '');
+    if (!className) return true;
+    const rule = classArmorRule(className);
+    if (c && c.type === 'multi') {
+      // thief restrictions apply to thief functions; for chargen equipment keep stricter thief/mu restrictions
+      if (c.classes.some(n => /Magic-User|Illusionist/.test(n)) && !c.classes.some(n => /Fighter/.test(n))) {
+        return false;
+      }
+      if (c.classes.some(n => /Thief|Assassin/.test(n)) && /shield/i.test(name)) return false;
+    }
+    if (/shield/i.test(name)) return rule.shield === 'all' || (Array.isArray(rule.shield) && rule.shield.indexOf(name) !== -1);
+    if (/helmet/i.test(name)) return rule.armor === 'all' || (Array.isArray(rule.armor) && rule.armor.length > 0);
+    if (ARMOR_AC[name] !== undefined) return rule.armor === 'all' || (Array.isArray(rule.armor) && rule.armor.indexOf(name) !== -1);
+    return true;
+  };
+
+  const itemWeightValue = (item) => {
+    const qty = Number(item && item.quantity || 1) || 1;
+    const normalizedName = normalizeWeaponName(item && item.name);
+    if (WEAPON_DATA[normalizedName] && WEAPON_DATA[normalizedName].weight_gp !== undefined) return WEAPON_DATA[normalizedName].weight_gp * qty;
+    if (STANDARD_ITEM_WEIGHT_GP[normalizedName] !== undefined) return STANDARD_ITEM_WEIGHT_GP[normalizedName] * qty;
+    const raw = Number(item && item.weight);
+    if (!isNaN(raw) && raw > 0) return raw * qty;
+    const fb = ITEM_WEIGHT_FALLBACK[normalizedName] || 0;
+    return fb * qty;
+  };
+
+  const baseItemWeight = (item) => {
+    const normalizedName = normalizeWeaponName(item && item.name);
+    if (WEAPON_DATA[normalizedName] && WEAPON_DATA[normalizedName].weight_gp !== undefined) return WEAPON_DATA[normalizedName].weight_gp;
+    if (STANDARD_ITEM_WEIGHT_GP[normalizedName] !== undefined) return STANDARD_ITEM_WEIGHT_GP[normalizedName];
+    const raw = Number(item && item.weight);
+    if (!isNaN(raw) && raw > 0) return raw;
+    return ITEM_WEIGHT_FALLBACK[normalizedName] || 0;
+  };
+
+  const addEquipmentRow = (characterId, itemName, qty, weight, costDisplay, rowType = 0) => {
+    const addQty = clamp(parseInt(qty, 10) || 1, 1, 9999);
+    const normalizedWeight = parseNumber(weight, 0);
+    const normalizedCost = String(costDisplay || '').trim();
+    const normalizedType = String(parseInt(rowType, 10) || 0);
+    const carriedSelect = '1';
+
+    const allAttrs = findObjs({ type: 'attribute', characterid: characterId }) || [];
+    const existingItemAttrs = allAttrs.filter(attr =>
+      /repeating_equipment_[^_]+_equipment_item$/.test(attr.get('name')) &&
+      String(attr.get('current') || '').trim() === String(itemName || '').trim()
+    );
+
+    for (let i = 0; i < existingItemAttrs.length; i++) {
+      const itemAttr = existingItemAttrs[i];
+      const prefix = itemAttr.get('name').replace(/equipment_item$/, '');
+
+      const qtyAttr = allAttrs.find(a => a.get('name') === prefix + 'equipment_quantity');
+      const weightAttr = allAttrs.find(a => a.get('name') === prefix + 'equipment_weight');
+      const costAttr = allAttrs.find(a => a.get('name') === prefix + 'equipment_cost');
+      const typeAttr = allAttrs.find(a => a.get('name') === prefix + 'equipment_type');
+
+      const rowWeight = parseNumber(weightAttr && weightAttr.get('current'), 0);
+      const rowCost = String((costAttr && costAttr.get('current')) || '').trim();
+      const rowTypeValue = String(parseInt((typeAttr && typeAttr.get('current')) || 0, 10) || 0);
+
+      if (
+        Math.abs(rowWeight - normalizedWeight) < 0.0001 &&
+        rowCost === normalizedCost &&
+        rowTypeValue === normalizedType
+      ) {
+        const currentQty = clamp(parseInt(qtyAttr && qtyAttr.get('current'), 10) || 0, 0, 9999);
+
+        if (qtyAttr) {
+          qtyAttr.set('current', currentQty + addQty);
+        } else {
+          createObj('attribute', {
+            characterid: characterId,
+            name: prefix + 'equipment_quantity',
+            current: addQty
+          });
+        }
+
+        return;
+      }
+    }
+
+    const getCurrent = (name, fallback = '') => {
+      const a = allAttrs.find(x => x.get('name') === name);
+      return a ? String(a.get('current') || '') : String(fallback);
+    };
+
+    const tabType = parseInt(getCurrent('equipment_tabs_type', '-1'), 10);
+    const tabCarry = parseInt(getCurrent('equipment_tabs_carry', '-1'), 10);
+    const carriedNum = parseInt(carriedSelect, 10);
+
+    const showType = (tabType === -1 || tabType === parseInt(normalizedType, 10)) ? '1' : '0';
+    const showCarry = (tabCarry === -1 || tabCarry === carriedNum) ? '1' : '0';
+
+    const rowId = makeRowId();
+    const prefix = `repeating_equipment_${rowId}_`;
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_item',
+      current: String(itemName || '')
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_location',
+      current: ''
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_type',
+      current: normalizedType
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_magical',
+      current: '0'
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_carried_select',
+      current: carriedSelect
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_carried',
+      current: '1'
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_quantity',
+      current: addQty
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_quantity_max',
+      current: ''
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_weight',
+      current: normalizedWeight
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_cost',
+      current: normalizedCost
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_current',
+      current: '0'
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_current_max',
+      current: ''
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_show_type',
+      current: showType
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_show_carry',
+      current: showCarry
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_sync_armor_flag',
+      current: '0'
+    });
+
+    createObj('attribute', {
+      characterid: characterId,
+      name: prefix + 'equipment_armor_type',
+      current: '99'
+    });
+  };
+
+  const armorFieldSetup = (itemName) => {
+    if (!itemName) return null;
+    if (/shield/i.test(itemName)) return { slot: 'shield', ac: '+1', armor_type: 3, bulk: /large/i.test(itemName) ? 3 : 1 };
+    if (/helmet/i.test(itemName)) return { slot: 'helmet', ac: 10, armor_type: 4, bulk: 0 };
+    const ac = ARMOR_AC[itemName];
+    if (ac !== undefined) {
+      const bulky = {
+        'Padded Armor': 2,
+        'Leather Armor': 1,
+        'Studded Leather Armor': 2,
+        'Ring Mail': 2,
+        'Scale Mail': 2,
+        'Chain Mail': 2,
+        'Splinted Armor': 3,
+        'Banded Armor': 3,
+        'Plate Mail': 3
+      }[itemName] ?? 0;
+      return { slot: 'armor', ac, armor_type: 1, bulk: bulky };
+    }
+    return null;
+  };
+
+
+  const rand = (n) => randomInteger(n);
+  const sum = (arr) => arr.reduce((a, b) => a + b, 0);
+  const clone = (obj) => JSON.parse(JSON.stringify(obj));
+  const parseNumber = (v, d = 0) => {
+    const n = parseFloat(v);
+    return isFinite(n) ? n : d;
+  };
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  const rollXdY = (x, y) => Array.from({ length: x }, () => rand(y));
+  const rollAbilitySet = () => Array.from({ length: 6 }, () => { const r = rollXdY(4, 6).sort((a, b) => a - b); return r[1] + r[2] + r[3]; }).sort((a, b) => b - a);
+  const parseCSVNumbers = (str) => String(str || '').split(',').map(s => parseInt(String(s).trim(), 10)).filter(n => !isNaN(n));
+  const multisetEqual = (a, b) => {
+    if (a.length !== b.length) return false;
+    const aa = clone(a).sort((x, y) => x - y);
+    const bb = clone(b).sort((x, y) => x - y);
+    return aa.every((v, i) => v === bb[i]);
+  };
+
+  const assignedComplete = (assigned) => ABILITIES.every(a => typeof assigned[a] === 'number' && !isNaN(assigned[a]));
+  const assignedToArray = (assigned) => ABILITIES.map(a => assigned[a]).filter(v => typeof v === 'number' && !isNaN(v));
+  const buildRemainingRolls = (rolledSet, assigned) => {
+    const remaining = clone(rolledSet || []);
+    assignedToArray(assigned).forEach(v => {
+      const idx = remaining.indexOf(v);
+      if (idx !== -1) remaining.splice(idx, 1);
+    });
+    return remaining.sort((a,b) => b-a);
+  };
+  const setAssignedValue = (session, ability, value) => {
+    session.assignedScores = session.assignedScores || { strength: null, intelligence: null, wisdom: null, dexterity: null, constitution: null, charisma: null };
+    session.assignedScores[ability] = value;
+    session.remainingRolls = buildRemainingRolls(session.rolledSet || [], session.assignedScores);
+    if (assignedComplete(session.assignedScores)) {
+      session.baseStats = {
+        strength: session.assignedScores.strength,
+        intelligence: session.assignedScores.intelligence,
+        wisdom: session.assignedScores.wisdom,
+        dexterity: session.assignedScores.dexterity,
+        constitution: session.assignedScores.constitution,
+        charisma: session.assignedScores.charisma
+      };
+      session.finalStats = clone(session.baseStats);
+      if (session.race) {
+        session.finalStats = applyRacialAdjustments(session.baseStats, session.race);
+      }
+      syncLanguages(session);
+    } else {
+      session.baseStats = null;
+      session.finalStats = null;
+      session.exceptionalStrength = '';
+      syncLanguages(session);
+    }
+  };
+
+  const clearAssignedValue = (session, ability) => {
+    session.assignedScores = session.assignedScores || { strength: null, intelligence: null, wisdom: null, dexterity: null, constitution: null, charisma: null };
+    session.assignedScores[ability] = null;
+    session.remainingRolls = buildRemainingRolls(session.rolledSet || [], session.assignedScores);
+    if (assignedComplete(session.assignedScores)) {
+      session.baseStats = {
+        strength: session.assignedScores.strength,
+        intelligence: session.assignedScores.intelligence,
+        wisdom: session.assignedScores.wisdom,
+        dexterity: session.assignedScores.dexterity,
+        constitution: session.assignedScores.constitution,
+        charisma: session.assignedScores.charisma
+      };
+      session.finalStats = clone(session.baseStats);
+      if (session.race) {
+        session.finalStats = applyRacialAdjustments(session.baseStats, session.race);
+      }
+    } else {
+      session.baseStats = null;
+      session.finalStats = null;
+    }
+    syncLanguages(session);
+  };
+
+  const isClassLegalByStats = (className, stats) => {
+    const c = CLASS_DATA[className];
+    if (!c) return false;
+    if (c.type === 'placeholder') return false;
+    if (c.type === 'multi') return c.classes.every(cls => isClassLegalByStats(cls, stats));
+    return Object.keys(c.mins).every(k => (stats[k] || 0) >= c.mins[k]);
+  };
+  const isClassLegalByRace = (race, className) => {
+    const r = RACE_DATA[race];
+    if (!r) return false;
+    if (CLASS_DATA[className] && CLASS_DATA[className].type === 'multi') return r.multi.indexOf(className) !== -1;
+    return r.single.indexOf(className) !== -1;
+  };
+  const legalClassesForRaceAndStats = (race, stats) => Object.keys(CLASS_DATA).filter(cn => {
+    const c = CLASS_DATA[cn];
+    if (c.type === 'placeholder') return cn === 'Dual-Class (Manual)' || cn === 'Bard Path (Manual)';
+    return isClassLegalByRace(race, cn) && isClassLegalByStats(cn, stats);
+  });
+  const legalAlignmentsForClass = (className) => {
+    const c = CLASS_DATA[className];
+    if (!c) return [];
+    if (c.type === 'multi') {
+      const sets = c.classes.map(cls => CLASS_DATA[cls].alignments);
+      return ALIGNMENTS.filter(a => sets.every(s => s.indexOf(a) !== -1));
+    }
+    if (c.type === 'placeholder') return ALIGNMENTS.slice();
+    return c.alignments.slice();
+  };
+
+  const legalClassesForRaceStatsAlignment = (race, stats, alignment) => {
+    const legal = legalClassesForRaceAndStats(race, stats);
+    if (!alignment) return legal;
+    return legal.filter(cn => legalAlignmentsForClass(cn).indexOf(alignment) !== -1);
+  };
+  const xpForLevel = (className, level) => {
+    const c = CLASS_DATA[className];
+    if (!c) return 0;
+    if (c.type === 'multi') return Math.max.apply(null, c.classes.map(cls => xpForLevel(cls, level)));
+    const table = c.xp || [0];
+    return table[Math.max(0, Math.min(level - 1, table.length - 1))] || 0;
+  };
+  const moneyForClass = (className) => {
+    const c = CLASS_DATA[className];
+    if (!c) return { totalGp: 0, formula: '0 gp', rolls: [] };
+    if (c.type === 'multi') {
+      const options = c.classes.map(cls => moneyForClass(cls));
+      return options.sort((a,b) => b.totalGp - a.totalGp)[0];
+    }
+    const [x, y, z] = c.money;
+    const rolls = rollXdY(x, y);
+    return {
+      totalGp: sum(rolls) * z,
+      formula: `${x}d${y} x ${z} gp`,
+      rolls
+    };
+  };
+  const movementForRaceClass = (race, className) => {
+    let base = ['Dwarf', 'Gnome', 'Halfling'].indexOf(race) !== -1 ? 9 : 12;
+    const c = CLASS_DATA[className];
+    if (c && c.type === 'single' && c.movement) base = Math.max(base, c.movement);
+    return base;
+  };
+  const aggregateSaveClass = (className) => {
+    const c = CLASS_DATA[className];
+    if (!c) return 3;
+    if (c.type === 'multi') {
+      const low = c.classes[0].toLowerCase().replace(/[^a-z]/g, '');
+      return SAVE_CLASS_ID[low] || 3;
+    }
+    const low = className.toLowerCase().replace(/[^a-z]/g, '');
+    return SAVE_CLASS_ID[low] || 3;
+  };
+  const applyRacialAdjustments = (stats, race) => {
+    const out = clone(stats);
+    const adj = (RACE_DATA[race] && RACE_DATA[race].adjustments) || {};
+    Object.keys(adj).forEach(k => out[k] = Math.max(3, Math.min(18, (out[k] || 0) + adj[k])));
+    return out;
+  };
+
+  const raceMeetsLimits = (race, stats) => {
+    const limits = RACE_LIMITS[race];
+    if (!limits || !stats) return false;
+    return ABILITIES.every(a => {
+      const v = stats[a];
+      return v >= limits.mins[a] && v <= limits.maxs[a];
+    });
+  };
+  const legalRacesForStats = (stats) => Object.keys(RACE_DATA).filter(r => raceMeetsLimits(r, applyRacialAdjustments(stats, r)));
+  const summarizeRaceAdjustments = (race) => {
+    const r = RACE_DATA[race];
+    if (!r || !r.adjustments || !Object.keys(r.adjustments).length) return 'none';
+    return Object.keys(r.adjustments)
+      .map(k => `${ABILITY_LABELS[k]} ${r.adjustments[k] >= 0 ? '+' : ''}${r.adjustments[k]}`)
+      .join(', ');
+  };
+
+  const summarizeRaceRequirements = (race) => {
+    const limits = RACE_LIMITS[race];
+    if (!limits) return 'No race data.';
+    const mins = ABILITIES.map(a => `${ABILITY_LABELS[a]} ${limits.mins[a]}-${limits.maxs[a]}`).join(', ');
+    return `Ability limits: ${mins}. Adjustments: ${summarizeRaceAdjustments(race)}.`;
+  };
+  const exceptionalStrengthNeeded = (className, strength) => {
+    if (strength !== 18) return false;
+    if (/Fighter|Paladin|Ranger/.test(className)) return true;
+    if (/Fighter\//.test(className)) return true;
+    return false;
+  };
+  const rollExceptionalStrength = () => rand(100);
+  const syncExceptionalStrength = (session) => {
+    const strength = session && session.finalStats ? session.finalStats.strength : null;
+    const className = session ? session.className : '';
+    if (exceptionalStrengthNeeded(className, strength)) {
+      if (!session.exceptionalStrength) {
+        session.exceptionalStrength = String(rollExceptionalStrength()).padStart(2, '0');
+      }
+    } else {
+      session.exceptionalStrength = '';
+    }
+  };
+  const rollAge = (race) => { const t = AGE_TABLE[race] || AGE_TABLE.Human; return t.base + sum(rollXdY(t.mod[0], t.mod[1])); };
+  const rollEyes = () => EYES[rand(EYES.length) - 1];
+  const rollHair = () => HAIR[rand(HAIR.length) - 1];
+  const rollHeightWeight = (race, gender) => {
+    const g = /^f/i.test(String(gender || 'male')) ? 'female' : 'male';
+    const t = (HEIGHT_WEIGHT[race] || HEIGHT_WEIGHT.Human)[g];
+    return { inches: t.h[0] + sum(rollXdY(1, t.h[1])), weight: t.w[0] + sum(rollXdY(1, t.w[1])) };
+  };
+  const inchesToFeetString = (n) => `${Math.floor(n / 12)}' ${n % 12}"`;
+  const goldToCoins = (gpFloat) => {
+    const gp = Math.floor(gpFloat);
+    let rem = gpFloat - gp;
+    const sp = Math.floor(rem * 10 + 1e-9);
+    rem = rem - (sp / 10);
+    const cp = Math.round(rem * 100 + 1e-9);
+    return { gp, sp, ep: 0, cp, pp: 0 };
+  };
+  const formatCoins = (coins) => `${coins.gp} gp, ${coins.sp} sp, ${coins.cp} cp`;
+  const strengthWeightAllowanceGp = (strength, exceptional) => {
+    if (strength <= 3) return -350;
+    if (strength <= 5) return -250;
+    if (strength <= 7) return -150;
+    if (strength <= 11) return 0;
+    if (strength <= 13) return 100;
+    if (strength <= 15) return 200;
+    if (strength === 16) return 350;
+    if (strength === 17) return 500;
+    if (strength === 18) {
+      const ex = parseInt(exceptional || '0', 10) || 0;
+      if (ex >= 100) return 3000;
+      if (ex >= 91) return 2000;
+      if (ex >= 76) return 1500;
+      if (ex >= 51) return 1250;
+      if (ex >= 1) return 1000;
+      return 750;
+    }
+    return 0;
+  };
+  const encumbranceState = (session, totalWeight) => {
+    const strength = (session.finalStats && session.finalStats.strength) || 10;
+    const allowanceLbs = strengthWeightAllowanceGp(strength, session.exceptionalStrength) / 10;
+    const normal = 35 + allowanceLbs;
+    const heavy = 70 + allowanceLbs;
+    const severe = 105 + allowanceLbs;
+    const max = 150 + allowanceLbs;
+    if (totalWeight <= normal) return 'Unencumbered';
+    if (totalWeight <= heavy) return 'Encumbered';
+    if (totalWeight <= severe) return 'Heavily Encumbered';
+    if (totalWeight <= max) return 'Severely Encumbered';
+    return 'Overloaded';
+  };
+  const itemPriceInGp = (item) => {
+    if (typeof item.priceGp === 'number') return item.priceGp;
+    const raw = String(item.price || '').trim();
+    const m = raw.match(/^([0-9]+(?:\.[0-9]+)?)\s*(cp|sp|ep|gp|pp)$/i);
+    if (!m) return 0;
+    const n = parseFloat(m[1]);
+    const unit = m[2].toLowerCase();
+    if (unit === 'cp') return n / 100;
+    if (unit === 'sp') return n / 10;
+    if (unit === 'ep') return n / 2;
+    if (unit === 'gp') return n;
+    if (unit === 'pp') return n * 5;
+    return 0;
+  };
+  const characterFromToken = (token, chosenName) => {
+    const c = createObj('character', { name: String(chosenName || token.get('name') || 'New Character').trim() || 'New Character' });
+    token.set('represents', c.id);
+    setAttr(c.id, ATTR.name, c.get('name'));
+    Object.keys(SHEET_DEFAULTS).forEach(k => setAttr(c.id, k, SHEET_DEFAULTS[k]));
+    return c;
+  };
+  const constitutionHpMod = (con) => {
+    if (con <= 4) return -2;
+    if (con <= 6) return -1;
+    if (con <= 14) return 0;
+    if (con <= 15) return 1;
+    if (con <= 16) return 2;
+    return 3;
+  };
+  const hpForLevel = (className, level, conMod) => {
+    const c = CLASS_DATA[className];
+    if (!c) return { total: 1, log: ['Default HP = 1'] };
+
+    if (c.type === 'multi') {
+      let total = 0;
+      const log = [];
+      for (let lvl = 1; lvl <= level; lvl++) {
+        let rolled = 0;
+        c.classes.forEach(cls => rolled += (lvl === 1 ? CLASS_DATA[cls].hd : rand(CLASS_DATA[cls].hd)));
+        const chunk = Math.floor(rolled / c.classes.length);
+        const gain = Math.max(1, chunk + conMod);
+        total += gain;
+        log.push(`L${lvl}: ${rolled}/${c.classes.length} => ${gain}`);
+      }
+      return { total, log };
+    }
+
+    const plans = {
+      'Cleric': { die: 8, diceLevels: 9, fixedAfter: 2 },
+      'Druid': { die: 8, diceLevels: 14, fixedAfter: 0 },
+      'Fighter': { die: 10, diceLevels: 9, fixedAfter: 3 },
+      'Paladin': { die: 10, diceLevels: 9, fixedAfter: 3 },
+      'Magic-User': { die: 4, diceLevels: 11, fixedAfter: 1 },
+      'Illusionist': { die: 4, diceLevels: 10, fixedAfter: 1 },
+      'Thief': { die: 6, diceLevels: 10, fixedAfter: 2 },
+      'Assassin': { die: 6, diceLevels: 15, fixedAfter: 0 }
+    };
+
+    let total = 0;
+    const log = [];
+
+    for (let lvl = 1; lvl <= level; lvl++) {
+      let diceGained = 0;
+      let dieSize = 0;
+      let fixedGain = 0;
+
+      if (className === 'Ranger') {
+        dieSize = 8;
+        if (lvl === 1) diceGained = 2;
+        else if (lvl <= 10) diceGained = 1;
+        else fixedGain = 2;
+      } else if (className === 'Monk') {
+        dieSize = 4;
+        if (lvl === 1) diceGained = 2;
+        else if (lvl <= 17) diceGained = 1;
+        else fixedGain = 0;
+      } else {
+        const plan = plans[className];
+        if (!plan) {
+          dieSize = c.hd || 6;
+          diceGained = 1;
+        } else {
+          dieSize = plan.die;
+          if (lvl <= plan.diceLevels) diceGained = 1;
+          else fixedGain = plan.fixedAfter;
+        }
+      }
+
+      let gain = 0;
+
+      if (diceGained > 0) {
+        let rolled = 0;
+        if (lvl === 1) {
+          rolled = dieSize * diceGained;
+        } else {
+          for (let i = 0; i < diceGained; i++) rolled += rand(dieSize);
+        }
+        const conTotal = conMod * diceGained;
+        gain = Math.max(1, rolled + conTotal);
+        total += gain;
+        log.push(`L${lvl}: ${rolled}${conTotal ? (conTotal > 0 ? ` + ${conTotal}` : ` - ${Math.abs(conTotal)}`) : ''} = ${gain}`);
+      } else {
+        gain = fixedGain;
+        total += gain;
+        log.push(`L${lvl}: fixed ${fixedGain}`);
+      }
+    }
+
+    return { total, log };
+  };
+
+  const chooseStartingSpells = (session) => {
+    const c = CLASS_DATA[session.className];
+    if (!c || !c.spellCaster) return [];
+    const group = c.spellCaster;
+    const count = (LEVEL_ONE_SPELL_COUNT[group] && LEVEL_ONE_SPELL_COUNT[group][1]) || 0;
+    return count > 0 ? ((SPELLS[group] && SPELLS[group][1]) ? SPELLS[group][1].slice(0, count) : []) : [];
+  };
+
+  const summarizeRaceInfo = (race) => {
+    const r = RACE_DATA[race];
+    if (!r) return 'No race data.';
+    const single = r.single.join(', ') || 'none';
+    const multi = r.multi.join(', ') || 'none';
+    const limits = RACE_LIMITS[race];
+    const limitText = limits ? ABILITIES.map(a => `${ABILITY_LABELS[a]} ${limits.mins[a]}-${limits.maxs[a]}`).join(', ') : 'none';
+    return `${race}: size ${r.size}; adjustments ${summarizeRaceAdjustments(race)}; single classes ${single}; multi-classes ${multi}; limits ${limitText}; languages ${r.languages.join(', ')}.`;
+  };
+  const summarizeClassInfo = (className) => {
+    const c = CLASS_DATA[className];
+    if (!c) return 'No data.';
+    if (c.type === 'multi') return `Multi-class combination: ${c.classes.join(' / ')}. Uses the intersection of race and stat requirements of component classes.`;
+    if (c.type === 'placeholder') return 'Manual path placeholder.';
+    const mins = Object.entries(c.mins).map(([k,v]) => `${ABILITY_LABELS[k] || k}: ${v}`).join(', ');
+    return `HD d${c.hd}; minimums: ${mins}; alignments: ${c.alignments.join(', ')}.`;
+  };
+  const summarizeAbilityInfo = (ability) => {
+    const map = {
+      strength: 'Affects melee hit chance, damage, carrying capacity, opening doors, and exceptional Strength for eligible fighters.',
+      intelligence: 'Affects extra languages, magic-user spell learning, maximum spells known, and highest spell level understood.',
+      wisdom: 'Affects certain mental-magical defenses and cleric bonus spells or spell failure.',
+      dexterity: 'Affects reaction, missile attacks, defense, and thief ability adjustments.',
+      constitution: 'Affects hit points per die, system shock survival, and resurrection survival.',
+      charisma: 'Affects henchmen limits, loyalty, and reaction adjustment.'
+    };
+    return map[ability] || 'No data.';
+  };
+  const renderRaceInfo = (playerId, tokenId, race) => {
+    const html = H.box(H.title(`${race} Info`) + H.row(H.esc(summarizeRaceInfo(race))) + H.row(H.btn('Back', `${CMD} --racemenu|${tokenId}`)));
+    whisperBoth(playerId, html);
+  };
+  const renderRaceRequirements = (playerId, tokenId, race) => {
+    const html = H.box(H.title(`${race} Requirements`) + H.row(H.esc(summarizeRaceRequirements(race))) + H.row(H.btn('Back', `${CMD} --racemenu|${tokenId}`)));
+    whisperBoth(playerId, html);
+  };
+  const renderClassInfo = (playerId, tokenId, className) => {
+    const html = H.box(H.title(`${className} Info`) + H.row(H.esc(summarizeClassInfo(className))) + H.row(H.btn('Back', `${CMD} --classmenu|${tokenId}`)));
+    whisperBoth(playerId, html);
+  };
+  const renderRequirements = (playerId, tokenId, className) => {
+    const c = CLASS_DATA[className];
+    const text = !c ? 'No data.' : (c.type === 'single' ? `Minimums: ${Object.entries(c.mins).map(([k,v])=>`${ABILITY_LABELS[k]||k}: ${v}`).join(', ')}; legal alignments: ${c.alignments.join(', ')}.` : summarizeClassInfo(className));
+    const html = H.box(H.title(`${className} Requirements`) + H.row(H.esc(text)) + H.row(H.btn('Back', `${CMD} --classmenu|${tokenId}`)));
+    whisperBoth(playerId, html);
+  };
+  const equipmentWeight = (item) => itemWeightValue(item);
+  const purchaseSummary = (session) => {
+    const items = (session.purchases || []).concat(session.cart || []);
+    const totalCostGp = (session.startingWalletGp || 0) - (session.walletGp || 0);
+    const totalWeight = items.reduce((a,i) => a + equipmentWeight(i), 0);
+    const names = items.map(i => `${i.name} x${i.quantity || 1}`).join(', ') || 'None';
+    const walletCoins = goldToCoins(session.walletGp || 0);
+    const spentCoins = goldToCoins(totalCostGp || 0);
+    const encumbrance = encumbranceState(session, totalWeight);
+    return { totalCostGp, totalWeight, names, walletCoins, spentCoins, encumbrance };
+  };
+
+  const applyCoreToSheet = (characterId, session) => {
+    const s = session.finalStats;
+    setAttr(characterId, ATTR.name, session.name || 'New Character');
+    setAttr(characterId, ATTR.race, session.race || '');
+    setAttr(characterId, ATTR.charClass, session.className || '');
+    setAttr(characterId, ATTR.alignment, session.alignment || '');
+    setAttr(characterId, ATTR.level, session.level || 1);
+    setAttr(characterId, ATTR.xp, session.xp || 0);
+    if (s) {
+      setAttr(characterId, ATTR.strength, s.strength);
+      setAttr(characterId, ATTR.intelligence, s.intelligence);
+      setAttr(characterId, ATTR.wisdom, s.wisdom);
+      setAttr(characterId, ATTR.dexterity, s.dexterity);
+      setAttr(characterId, ATTR.constitution, s.constitution);
+      setAttr(characterId, ATTR.charisma, s.charisma);
+      const intel = s.intelligence;
+      let know = 0, minS = 0, maxS = 0;
+      if (intel === 9) { know = 35; minS = 4; maxS = 6; }
+      else if (intel >= 10 && intel <= 12) { know = 45; minS = 5; maxS = 7; }
+      else if (intel >= 13 && intel <= 14) { know = 55; minS = 6; maxS = 9; }
+      else if (intel >= 15 && intel <= 16) { know = 65; minS = 7; maxS = 11; }
+      else if (intel === 17) { know = 75; minS = 8; maxS = 14; }
+      else if (intel >= 18) { know = 85; minS = 9; maxS = 18; }
+      setAttr(characterId, ATTR.knowspell, know);
+      setAttr(characterId, ATTR.minspells, minS);
+      setAttr(characterId, ATTR.maxspells, maxS);
+
+      const cha = s.charisma;
+      let maxHench = 4, loyalty = '0', reaction = '0';
+      if (cha <= 3) { maxHench = 1; loyalty = '-30'; reaction = '-25'; }
+      else if (cha === 4) { maxHench = 1; loyalty = '-25'; reaction = '-20'; }
+      else if (cha === 5) { maxHench = 2; loyalty = '-20'; reaction = '-15'; }
+      else if (cha === 6) { maxHench = 2; loyalty = '-15'; reaction = '-10'; }
+      else if (cha === 7) { maxHench = 3; loyalty = '-10'; reaction = '-05'; }
+      else if (cha === 8) { maxHench = 3; loyalty = '-05'; reaction = '0'; }
+      else if (cha >= 9 && cha <= 11) { maxHench = 4; loyalty = '0'; reaction = '0'; }
+      else if (cha === 12) { maxHench = 5; loyalty = '0'; reaction = '0'; }
+      else if (cha === 13) { maxHench = 5; loyalty = '0'; reaction = '+05'; }
+      else if (cha === 14) { maxHench = 6; loyalty = '+05'; reaction = '+10'; }
+      else if (cha === 15) { maxHench = 7; loyalty = '+15'; reaction = '+15'; }
+      else if (cha === 16) { maxHench = 8; loyalty = '+20'; reaction = '+25'; }
+      else if (cha === 17) { maxHench = 10; loyalty = '+30'; reaction = '+30'; }
+      else if (cha >= 18) { maxHench = 15; loyalty = '+40'; reaction = '+35'; }
+      setAttr(characterId, ATTR.maximumhenchmen, maxHench);
+      setAttr(characterId, ATTR.loyaltybonus, loyalty);
+      setAttr(characterId, ATTR.reactionbonus, reaction);
+    }
+    setAttr(characterId, ATTR.exceptionalStrength, session.exceptionalStrength || '');
+    setAttr(characterId, ATTR.gender, session.gender || '');
+    setAttr(characterId, ATTR.age, session.age || '');
+    setAttr(characterId, ATTR.height, session.height || '');
+    setAttr(characterId, ATTR.weight, session.weight || '');
+    setAttr(characterId, ATTR.eyes, session.eyes || '');
+    setAttr(characterId, ATTR.hair, session.hair || '');
+    setAttr(characterId, ATTR.size, session.race ? RACE_DATA[session.race].size : '');
+    setAttr(characterId, ATTR.racialNotes, '');
+    setAttr(characterId, ATTR.languages, (session.languages || []).join(', '));
+    setAttr(characterId, ATTR.movement, session.movement || 12);
+    setAttr(characterId, ATTR.movementHeavy, session.movementHeavy || Math.max(3, (session.movement || 12) - 3));
+    setAttr(characterId, ATTR.movementLoad, session.movementLoad || Math.max(3, (session.movement || 12) - 6));
+    setAttr(characterId, ATTR.movementMax, session.movementMax || (session.movement || 12) + 3);
+    setAttr(characterId, ATTR.savesClass, aggregateSaveClass(session.className || 'Fighter'));
+    setAttr(characterId, ATTR.savesLevel, session.level || 1);
+    setAttr(characterId, ATTR.syncMatrixClass, 1);
+    setAttr(characterId, ATTR.matrixLevel, session.level || 1);
+    setAttr(characterId, ATTR.hp, session.hpTotal || 1, session.hpTotal || 1);
+    setAttr(characterId, ATTR.hitdice, CLASS_HITDICE[session.className] || '1d6');
+    const coins = session.coins || { gp: 0, sp: 0, ep: 0, cp: 0, pp: 0 };
+    setAttr(characterId, ATTR.gp, coins.gp);
+    setAttr(characterId, ATTR.sp, coins.sp);
+    setAttr(characterId, ATTR.ep, coins.ep);
+    setAttr(characterId, ATTR.cp, coins.cp);
+    setAttr(characterId, ATTR.pp, coins.pp);
+  };
+
+  const addEquipmentToSheet = (characterId, items) => {
+    let armorType = '';
+    let armorShield = '';
+    let armorHelmet = '';
+    let armorTypeAC = '';
+    let armorShieldAC = '';
+    let armorHelmetAC = '';
+
+    items.forEach(item => {
+      const costDisplay = String(item.price || (item.priceGp !== undefined ? `${item.priceGp} gp` : ''));
+      const weightValue = baseItemWeight(item);
+      addEquipmentRow(characterId, item.name, Number(item.quantity || 1), weightValue, costDisplay);
+
+      if (item.type === 'weapon' && item.weaponName) {
+        const wName = normalizeWeaponName(item.weaponName);
+        const wd = WEAPON_DATA[wName] || {};
+        addRepeatingRow(characterId, REPEAT.weapons, {
+          weapon_name: item.weaponName,
+          weapon_damagesmallmedium: wd.dmg_sm || '',
+          weapon_damagelarge: wd.dmg_lg || '',
+          weapon_attackdmgbonus: 0,
+          weapon_attackdmgtype: wd.dmg_type || '',
+          weapon_attack_type: wd.attack_type || 'Melee',
+          weapon_speed: wd.speed || '',
+          weapon_length: wd.length || '',
+          weapon_space: wd.space || '',
+          weapon_quantity: Number(item.quantity || 1),
+          weapon_weight: weightValue,
+          weapon_cost: costDisplay
+        });
+      }
+
+      if (item.category === 'armor') {
+        const setup = armorFieldSetup(item.name);
+        if (setup && setup.slot === 'shield') {
+          armorShield = armorShield || item.name;
+          armorShieldAC = armorShieldAC || setup.ac;
+        } else if (setup && setup.slot === 'helmet') {
+          armorHelmet = armorHelmet || item.name;
+          armorHelmetAC = armorHelmetAC || setup.ac;
+        } else if (setup && setup.slot === 'armor') {
+          armorType = armorType || item.name;
+          armorTypeAC = armorTypeAC || setup.ac;
+        }
+      }
+    });
+
+    if (armorType) setAttr(characterId, ATTR.armorType, armorType);
+    if (armorTypeAC !== '') setAttr(characterId, ATTR.armorTypeAC, armorTypeAC);
+    if (armorShield) setAttr(characterId, ATTR.armorShield, armorShield);
+    if (armorShieldAC !== '') setAttr(characterId, ATTR.armorShieldAC, armorShieldAC);
+    if (armorHelmet) setAttr(characterId, ATTR.armorHelmet, armorHelmet);
+    if (armorHelmetAC !== '') setAttr(characterId, ATTR.armorHelmetAC, armorHelmetAC);
+  };
+  const addSpellNamesToSheet = (characterId, spellNames) => spellNames.forEach(name => addRepeatingRow(characterId, REPEAT.spells, { spell_name: name }));
+
+  const statusLine = (session) => {
+    const bits = [];
+    if (session.race) bits.push(session.race);
+    if (session.className) bits.push(session.className);
+    if (session.alignment) bits.push(session.alignment);
+    return bits.join(' • ') || 'No race/class/alignment chosen yet';
+  };
+
+  const statLine = (session) => {
+    if (!session.baseStats) return 'Abilities not assigned yet.';
+    const s = session.finalStats || session.baseStats;
+    return `STR ${s.strength}${session.exceptionalStrength ? `/${session.exceptionalStrength}` : ''}  INT ${s.intelligence}  WIS ${s.wisdom}  DEX ${s.dexterity}  CON ${s.constitution}  CHA ${s.charisma}`;
+  };
+
+  const renderHub = (playerId, tokenId, session) => {
+    const html = H.box(
+      H.title('AD&D 1E Character Builder') +
+      H.row(`Name: ${H.esc(session.name || 'New Character')}`) +
+      H.row(H.small(H.esc(statusLine(session)))) +
+      H.row(H.small(H.esc(statLine(session)))) +
+      H.row(H.small('Flow: abilities → race → alignment → class → level / HP → appearance.')) +
+      H.row(H.btn('Roll Abilities', `${CMD} --rollabilities|${tokenId}`) +
+            H.btn('Enter Rolled Scores', `${CMD} --manualscores|${tokenId}|?{STR|16}|?{INT|15}|?{WIS|13}|?{DEX|12}|?{CON|10}|?{CHA|8}`) +
+            H.btn('Assign Abilities', `${CMD} --assignmenu|${tokenId}`) +
+            H.btn('Pick Race', `${CMD} --racemenu|${tokenId}`)) +
+      H.row(H.btn('Pick Alignment', `${CMD} --alignmentmenu|${tokenId}`) +
+            H.btn('Pick Class', `${CMD} --classmenu|${tokenId}`) +
+            H.btn('Set Level / HP', `${CMD} --levelmenu|${tokenId}`)) +
+      H.row(H.btn('Appearance', `${CMD} --detailsmenu|${tokenId}`) +
+            H.btn('Languages', `${CMD} --languagemenu|${tokenId}`) +
+            H.btn('Players Handbook Shop', '!shop-open baseline')) +
+      H.row(H.btn('Ability Notes', `${CMD} --abilitynotes|${tokenId}`) + H.btn('Race Info', `${CMD} --racemenu|${tokenId}`) + H.btn('Class Info', `${CMD} --classmenu|${tokenId}`)) +
+      H.row(H.btn('Reset Session', `${CMD} --reset|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const renderStartOrHub = (msg, token) => {
+    const existing = getSession(token.id);
+    if (existing) return renderHub(msg.playerid, token.id, existing);
+    const represented = token.get('represents');
+    if (represented) {
+      const c = getObj('character', represented);
+      const session = {
+        playerId: msg.playerid, tokenId: token.id, characterId: represented,
+        name: c ? c.get('name') : token.get('name') || 'New Character',
+        rerollsUsed: 0, rolledSet: [], remainingRolls: [], assignedScores: { strength: null, intelligence: null, wisdom: null, dexterity: null, constitution: null, charisma: null }, baseStats: null, finalStats: null, race: null, className: null, alignment: null,
+        level: 1, xp: 0, exceptionalStrength: '', gender: 'male', age: '', height: '', weight: '', eyes: '', hair: '',
+        movement: 12, movementHeavy: 9, movementLoad: 6, movementMax: 15, walletGp: 0, coins: { gp: 0, sp: 0, ep: 0, cp: 0, pp: 0 },
+        purchases: [], hpTotal: 1, hpLog: [], languages: ['Common'], startingWalletGp: 0, startingMoneyFormula: '', startingMoneyRolls: []
+      };
+      setSession(token.id, session);
+      return renderHub(msg.playerid, token.id, session);
+    }
+    const html = H.box(
+      H.title('AD&D 1E New Character') +
+      H.row(`Token: ${H.esc(token.get('name') || '(unnamed)')}`) +
+      H.row(H.btn('Create Character', `${CMD} --name|${token.id}|?{Character Name (blank allowed)|${token.get('name') || ''}}`))
+    );
+    whisperBoth(msg.playerid, html);
+  };
+
+  const renderRolledSet = (playerId, tokenId, session) => {
+    const values = (session.rolledSet && session.rolledSet.length ? session.rolledSet : session.rolledSet || []);
+    const html = H.box(
+      H.title('Roll Abilities') +
+      H.row(`Rolled values: ${H.esc(values.join(', '))}`) +
+      H.row(`Rerolls used: ${session.rerollsUsed}/3`) +
+      H.row(H.btn('Assign These Scores', `${CMD} --assignmenu|${tokenId}`)) +
+      (session.rerollsUsed < 3 ? H.row(H.btn('Reroll All 6', `${CMD} --reroll|${tokenId}`)) : '') +
+      H.row(H.btn('Back to Main Menu', `${CMD} --hub|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const renderAssignPicker = (playerId, tokenId, session, ability) => {
+    const remaining = Array.isArray(session.remainingRolls) ? session.remainingRolls.slice() : [];
+    const label = ABILITY_LABELS[ability] || ability;
+    const current = session.assignedScores ? session.assignedScores[ability] : null;
+
+    if (!remaining.length && typeof current !== 'number') {
+      return whisperBoth(
+        playerId,
+        H.box(
+          H.title('Assign Abilities') +
+          H.row('No remaining values available.') +
+          H.row(H.btn('Back', `${CMD} --assignmenu|${tokenId}`))
+        )
+      );
+    }
+
+    const counts = {};
+    const choices = [];
+    const addChoice = (value) => {
+      counts[value] = (counts[value] || 0) + 1;
+      const idx = counts[value];
+      const display = idx > 1 ? `${value} (${idx})` : `${value}`;
+      choices.push(`${display},${value}`);
+    };
+
+    if (typeof current === 'number') addChoice(current);
+    remaining.forEach(addChoice);
+
+    const query = `${CMD} --assignpick|${tokenId}|${ability}|?{${label}|${choices.join('|')}}`;
+
+    const html = H.box(
+      H.title(`Assign ${label}`) +
+      H.row(`Remaining values: ${H.esc(remaining.join(', ') || 'none')}`) +
+      H.row(`Current ${label}: ${current === null || typeof current === 'undefined' ? '—' : current}`) +
+      H.row(H.btn(`Choose ${label}`, query)) +
+      H.row(H.btn('Back', `${CMD} --assignmenu|${tokenId}`))
+    );
+
+    whisperBoth(playerId, html);
+  };
+
+  const renderAssignMenu = (playerId, tokenId, session) => {
+    const values = session.rolledSet || [];
+    if (!values.length) {
+      return whisperBoth(playerId, H.box(H.title('Assign Abilities') + H.row('Roll abilities first.') + H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))));
+    }
+    const remaining = session.remainingRolls || buildRemainingRolls(values, session.assignedScores || {});
+    session.remainingRolls = remaining;
+    const rows = ABILITIES.map(a => {
+      const label = ABILITY_LABELS[a];
+      const current = session.assignedScores && typeof session.assignedScores[a] === 'number' ? session.assignedScores[a] : '—';
+      const changeBtn = H.btn(current === '—' ? 'Assign' : 'Change', `${CMD} --assignability|${tokenId}|${a}`);
+      const dropBtn = current === '—' ? '' : H.btn('Drop', `${CMD} --dropability|${tokenId}|${a}`);
+      return H.row(`${label}: ${current} ${changeBtn} ${dropBtn}`);
+    }).join('');
+    const confirm = assignedComplete(session.assignedScores || {}) ? H.row(H.btn('Confirm Scores', `${CMD} --hub|${tokenId}`)) : '';
+    const manualSet = H.row(H.btn('Set Scores Manually', `${CMD} --manualassign|${tokenId}|?{STR|10}|?{INT|10}|?{WIS|10}|?{DEX|10}|?{CON|10}|?{CHA|10}`));
+    const html = H.box(
+      H.title('Assign Abilities') +
+      H.row(`Rolled set: ${H.esc(values.join(', '))}`) +
+      H.row(`Remaining values: ${H.esc(remaining.join(', ') || 'none')}`) +
+      rows +
+      manualSet +
+      confirm +
+      H.row(H.btn('Back to Main Menu', `${CMD} --hub|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const renderRaceMenu = (playerId, tokenId, session) => {
+    const all = Object.keys(RACE_DATA);
+    const legal = session.baseStats ? legalRacesForStats(session.baseStats) : [];
+    const rows = all.map(r => {
+      const ok = legal.indexOf(r) !== -1;
+      const main = ok
+        ? H.btnColor(r, `${CMD} --race|${tokenId}|${r}`, '#fff', '#1f6f1f')
+        : H.pill(r, '#fff', '#7a1f1f');
+      return H.row(main + H.btn('Info', `${CMD} --raceinfo|${tokenId}|${r}`) + H.btn('Req', `${CMD} --racereq|${tokenId}|${r}`));
+    }).join('');
+    const html = H.box(
+      H.title('Choose Race') +
+      H.row(session.baseStats ? 'Green races are legal for your current scores. Red races are blocked.' : 'Assign abilities first to see legal race choices.') +
+      rows +
+      H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const classHelp = (stats, race) => {
+    if (!stats) return 'Assign abilities first.';
+    const legal = race ? legalClassesForRaceAndStats(race, stats) : [];
+    return race ? `Legal for ${race}: ${legal.join(', ') || 'none'}` : 'Choose a race first.';
+  };
+
+  const renderClassMenu = (playerId, tokenId, session) => {
+    if (!session.race || !session.finalStats) {
+      return whisperBoth(playerId, H.box(H.title('Choose Class') + H.row('Choose race and assign abilities first.') + H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))));
+    }
+    if (!session.alignment) {
+      return whisperBoth(playerId, H.box(H.title('Choose Class') + H.row('Choose alignment first.') + H.row(H.btn('Pick Alignment', `${CMD} --alignmentmenu|${tokenId}`)) + H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))));
+    }
+
+    const legal = legalClassesForRaceStatsAlignment(session.race, session.finalStats, session.alignment);
+    const all = Object.keys(CLASS_DATA).filter(cn => cn !== 'Bard Path (Manual)');
+    const rows = all.map(cn => {
+      const ok = legal.indexOf(cn) !== -1;
+      const main = ok
+        ? H.btnColor(cn, `${CMD} --class|${tokenId}|${cn}`, '#fff', '#1f6f1f')
+        : H.pill(cn, '#fff', '#7a1f1f');
+      return H.row(main + H.btn('Info', `${CMD} --classinfo|${tokenId}|${cn}`) + H.btn('Req', `${CMD} --requirements|${tokenId}|${cn}`));
+    }).join('');
+    const html = H.box(
+      H.title('Choose Class') +
+      H.row(H.small(H.esc(classHelp(session.finalStats, session.race)))) +
+      H.row(H.small('Class availability depends on race, ability scores, and alignment.')) +
+      H.row(`Alignment selected: ${H.esc(session.alignment)}`) +
+      rows +
+      H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const renderAlignmentMenu = (playerId, tokenId, session) => {
+    if (!session.race || !session.finalStats) {
+      return whisperBoth(playerId, H.box(
+        H.title('Choose Alignment') +
+        H.row('Choose race and assign abilities first.') +
+        H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))
+      ));
+    }
+
+    const legal = session.className ? legalAlignmentsForClass(session.className) : ALIGNMENTS;
+    const legalText = session.className
+      ? `Legal for ${H.esc(session.className)}: ${legal.join(', ')}`
+      : 'Choose alignment before class so restricted classes only appear when legal.';
+
+    const btns = legal.map(a => H.btn(a, `${CMD} --alignment|${tokenId}|${a}`)).join('');
+    const html = H.box(
+      H.title('Choose Alignment') +
+      H.row(legalText) +
+      H.row(btns) +
+      H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const renderLanguageMenu = (playerId, tokenId, session) => {
+    if (!session.race || !session.finalStats) {
+      return whisperBoth(playerId, H.box(
+        H.title('Languages') +
+        H.row('Choose race and assign abilities first.') +
+        H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))
+      ));
+    }
+
+    const info = syncLanguages(session);
+    const available = BONUS_LANGUAGE_POOL.filter(l => info.base.indexOf(l) === -1);
+    const rows = available.map(lang => {
+      const selected = info.selected.indexOf(lang) !== -1;
+      const full = !selected && info.selected.length >= info.picks;
+      if (selected) {
+        return H.row(`${H.esc(lang)} ${H.btn('Unselect', `${CMD} --languagetoggle|${tokenId}|${lang}`)}`);
+      }
+      if (full) {
+        return H.row(`${H.esc(lang)} ${H.pill('Full', '#fff', '#7a1f1f')}`);
+      }
+      return H.row(`${H.esc(lang)} ${H.btn('Select', `${CMD} --languagetoggle|${tokenId}|${lang}`)}`);
+    }).join('');
+
+    const html = H.box(
+      H.title('Languages') +
+      H.row(`Racial languages: ${H.esc(info.base.join(', '))}`) +
+      H.row(`Additional language picks from INT: ${info.selected.length}/${info.picks}`) +
+      H.row(`Current languages: ${H.esc((session.languages || []).join(', '))}`) +
+      rows +
+      H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))
+    );
+    liveWriteRaceClassLevelAlignment(session);
+    setSession(tokenId, session);
+    whisperBoth(playerId, html);
+  };
+
+  const renderLevelMenu = (playerId, tokenId, session) => {
+    const html = H.box(
+      H.title('Set Level / Hit Points') +
+      H.row(`Current level: ${session.level || 1}`) +
+      H.row(H.btn('Level 1', `${CMD} --level|${tokenId}|1`) + H.btn('Choose Level', `${CMD} --level|${tokenId}|?{Starting level|1}`)) +
+      H.row('1st level is max HP with Constitution adjustment. Higher levels use class-based AD&D 1e progression.') +
+      H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const renderDetailsMenu = (playerId, tokenId, session) => {
+    const html = H.box(
+      H.title('Appearance / Personal Details') +
+      H.row(`Gender: ${H.esc(session.gender || '')} • Age: ${H.esc(String(session.age || ''))} • Height: ${H.esc(session.height || '')} • Weight: ${H.esc(String(session.weight || ''))}`) +
+      H.row(`Eyes: ${H.esc(session.eyes || '')} • Hair: ${H.esc(session.hair || '')}`) +
+      H.row(H.btn('Roll Details', `${CMD} --rolldetails|${tokenId}`)) +
+      H.row(H.btn('Choose Details', `${CMD} --setdetails|${tokenId}|?{Gender|male|female}|?{Age|${session.age || 18}}|?{Height|${session.height || "5' 8\""}}|?{Weight|${session.weight || 150}}|?{Eyes|Brown|Blue|Green|Gray|Hazel|Black}|?{Hair|Black|Brown|Blond|Red|Auburn|Gray|White}`)) +
+      H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const renderEquipmentCategories = (playerId, tokenId, session) => {
+    const available = EQUIPMENT_CATEGORIES.filter(cat => EQUIPMENT.some(i => i.category === cat));
+    const btns = available.map(c => H.btn(c, `${CMD} --equipcat|${tokenId}|${c}`)).join('');
+    const ps = purchaseSummary(session);
+    const cartCount = (session.cart || []).reduce((a, i) => a + (Number(i.quantity || 1) || 1), 0);
+
+    const html = H.box(
+      H.title('Equipment') +
+      H.row(`Starting money: ${H.esc(session.startingMoneyFormula || 'not rolled')} ${session.startingMoneyRolls ? `(rolls: ${session.startingMoneyRolls.join(', ')})` : ''}`) +
+      H.row(`Wallet: ${formatCoins(ps.walletCoins)} • Spent: ${formatCoins(ps.spentCoins)}`) +
+      H.row(`Weight: ${ps.totalWeight} • Encumbrance: ${ps.encumbrance}`) +
+      H.row(`Cart items: ${cartCount}`) +
+      H.row(H.small('Checkout adds all purchased items to the basic equipment list. Players can sort or equip them later on the sheet.')) +
+      H.row(btns) +
+      H.row(H.btn('View Cart', `${CMD} --viewcart|${tokenId}`)) +
+      H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))
+    );
+
+    whisperBoth(playerId, html);
+  };
+
+  const renderEquipmentList = (playerId, tokenId, session, category) => {
+    const items = EQUIPMENT.filter(i => i.category === category).slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
+    const fmtPrice = (item) => item.priceGp !== undefined ? `${item.priceGp} gp` : String(item.price || '');
+    const ps = purchaseSummary(session);
+    const btns = items.map(i => {
+      const allowed = (!session.className) || (category === 'armor' ? canClassUseItem(session.className, i.name) : (category === 'weapons' ? weaponAllowedForClass(session.className, i.name) : true));
+      return allowed ? H.btnColor(`Add ${i.name} (${fmtPrice(i)})`, `${CMD} --addtocart|${tokenId}|${i.key}`, '#fff', '#1f6f1f') : H.pill(`${i.name} (${fmtPrice(i)})`, '#fff', '#7a1f1f');
+    }).join('');
+    const html = H.box(
+      H.title(`Equipment: ${category}`) +
+      H.row(`Starting money: ${H.esc(session.startingMoneyFormula || 'not rolled')} ${session.startingMoneyRolls ? `(rolls: ${session.startingMoneyRolls.join(', ')})` : ''}`) +
+      H.row(`Wallet: ${formatCoins(ps.walletCoins)} • Spent: ${formatCoins(ps.spentCoins)}`) +
+      H.row(`Weight: ${ps.totalWeight} • Encumbrance: ${ps.encumbrance}`) +
+      H.row(`Selected: ${H.esc(ps.names)}`) +
+      (category === 'armor' && session.className ? H.row(`Red armor is blocked for ${H.esc(session.className)}.`) : '') +
+      (category === 'weapons' && session.className ? H.row(`Red weapons are blocked for ${H.esc(session.className)}.`) : '') +
+      H.row(btns || 'No items in that category.') +
+      H.row(H.btn('Categories', `${CMD} --equipmenu|${tokenId}`) + H.btn('Back', `${CMD} --hub|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const renderCart = (playerId, tokenId, session) => {
+    const ps = purchaseSummary(session);
+    const totalQty = (session.cart || []).reduce((a, i) => a + (Number(i.quantity || 1) || 1), 0);
+    const rows = (session.cart || []).map((item, idx) =>
+      H.row(`${idx + 1}. ${H.esc(item.name)} x${item.quantity || 1} — ${H.esc(item.price || '')} — wt ${baseItemWeight(item)} ${H.btn('Remove', `${CMD} --removecart|${tokenId}|${idx}`)}`)
+    ).join('') || H.row('Cart is empty.');
+    const html = H.box(
+      H.title('Shopping Cart') +
+      H.row(`Items in cart: ${totalQty}`) +
+      H.row(`Wallet: ${formatCoins(ps.walletCoins)} • Spent: ${formatCoins(ps.spentCoins)}`) +
+      H.row(`Weight: ${ps.totalWeight} • Encumbrance: ${ps.encumbrance}`) +
+      rows +
+      H.row(H.btn('Confirm Checkout', `${CMD} --checkout|${tokenId}`) + H.btn('Back to Equipment', `${CMD} --equipmenu|${tokenId}`))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const sendSummary = (playerId, session) => {
+    const html = H.box(
+      H.title('Character Created') +
+      H.row(`${H.esc(session.name)} — ${H.esc(statusLine(session))}`) +
+      H.row(H.esc(statLine(session))) +
+      H.row(`Level ${session.level} • XP ${session.xp} • HP ${session.hpTotal} • HD ${CLASS_HITDICE[session.className] || '1d6'}`) +
+      H.row(`Age ${session.age} • Height ${session.height} • Weight ${session.weight}`) +
+      H.row(`Movement ${session.movement} • Remaining ${formatCoins(session.coins)}`) +
+      H.row(H.small(`HP rolls: ${session.hpLog.join(' | ')}`)) +
+      H.row('Visit the Players Handbook store for equipment.') +
+      H.row('Access the character sheet for spells if necessary.') +
+      H.row(H.small('Equipment is not handled inside this builder.'))
+    );
+    whisperBoth(playerId, html);
+  };
+
+  const parseAction = (content) => {
+    if (content === CMD) return { action: 'start', args: [] };
+    const part = content.replace(`${CMD} --`, '');
+    const bits = part.split('|');
+    return { action: bits[0], args: bits.slice(1) };
+  };
+
+  const error = (playerId, msg) => whisperBoth(playerId, H.box(H.title('Error') + H.row(msg)));
+  const addToCart = (session, key) => {
+    session.cart = session.cart || [];
+    session.purchases = session.purchases || [];
+    const item = EQUIPMENT.find(i => i.key === key);
+    if (!item) return { ok: false, msg: 'Item not found.' };
+    const itemName = safeItemName(item);
+    if (item.category === 'armor' && session.className && !canClassUseItem(session.className, itemName)) {
+      return { ok: false, msg: `${session.className} cannot use that armor.` };
+    }
+    if (itemIsWeapon(item) && session.className && !weaponAllowedForClass(session.className, itemName)) {
+      return { ok: false, msg: `${session.className} cannot use that weapon.` };
+    }
+    const priceGp = itemPriceInGp(item);
+    if (session.walletGp + 0.0001 < priceGp) return { ok: false, msg: 'Not enough gold.' };
+    session.walletGp = Math.round((session.walletGp - priceGp) * 100) / 100;
+    const normalized = Object.assign({}, item, {
+      name: itemName,
+      priceGp,
+      price: String(item.price || (priceGp ? `${priceGp} gp` : '')),
+      quantity: 1,
+      weight: baseItemWeight(Object.assign({}, item, { name: itemName })),
+      type: 'gear',
+      weaponName: itemIsWeapon(item) ? itemName : undefined
+    });
+    session.cart.push(normalized);
+    return { ok: true, item: normalized };
+  };
+
+  const removeCartIndex = (session, idx) => {
+    const cart = session.cart || [];
+    if (idx < 0 || idx >= cart.length) return { ok: false, msg: 'Cart item not found.' };
+    const item = cart[idx];
+    const qty = Number(item.quantity || 1) || 1;
+    session.walletGp = Math.round((session.walletGp + (item.priceGp || 0) * qty) * 100) / 100;
+    cart.splice(idx, 1);
+    return { ok: true };
+  };
+
+  const checkoutCart = (session) => {
+    session.cart = session.cart || [];
+    session.purchases = session.purchases || [];
+
+    if (!session.cart.length) {
+      return { ok: false, msg: 'Cart is empty.' };
+    }
+
+    const lines = session.cart.map(i => Object.assign({}, i));
+    session.cart = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const item = Object.assign({}, lines[i], {
+        quantity: clamp(parseInt(lines[i].quantity, 10) || 1, 1, 9999),
+        type: 'gear'
+      });
+
+      session.purchases.push(item);
+      liveAddPurchasedItem(session, item);
+    }
+
+    liveWriteCoins(session);
+    return { ok: true, count: lines.length };
+  };
+
+  const buyItem = (session, key) => {
+    const item = EQUIPMENT.find(i => i.key === key);
+    if (!item) return { ok: false, msg: 'Item not found.' };
+    if (item.category === 'armor' && session.className && !canClassUseItem(session.className, item.name)) {
+      return { ok: false, msg: `${session.className} cannot use that armor.` };
+    }
+    if (itemIsWeapon(item) && session.className && !weaponAllowedForClass(session.className, item.name)) {
+      return { ok: false, msg: `${session.className} cannot use that weapon.` };
+    }
+    const priceGp = itemPriceInGp(item);
+    if (session.walletGp + 0.0001 < priceGp) return { ok: false, msg: 'Not enough gold.' };
+    session.walletGp = Math.round((session.walletGp - priceGp) * 100) / 100;
+    const normalized = Object.assign({}, item, {
+      priceGp,
+      price: String(item.price || (priceGp ? `${priceGp} gp` : '')),
+      quantity: 1,
+      weight: baseItemWeight(item),
+      type: itemIsWeapon(item) ? 'weapon' : 'gear',
+      weaponName: itemIsWeapon(item) ? item.name : undefined
+    });
+    session.purchases.push(normalized);
+    return { ok: true, item: normalized };
+  };
+
+  const finalizeCharacter = (playerId, tokenId, session) => {
+    session.coins = goldToCoins(session.walletGp);
+    session.startingSpells = chooseStartingSpells(session);
+    applyCoreToSheet(session.characterId, session);
+    addEquipmentToSheet(session.characterId, session.purchases);
+    addSpellNamesToSheet(session.characterId, session.startingSpells);
+    sendSummary(playerId, session);
+    clearSession(tokenId);
+  };
+
+  on('chat:message', (msg) => {
+    if (msg.type !== 'api' || !msg.content.startsWith(CMD)) return;
+    initState();
+    const parsed = parseAction(msg.content);
+    const action = parsed.action;
+    const args = parsed.args;
+
+    if (action === 'start') {
+      const token = getSelectedToken(msg);
+      if (!token) return error(msg.playerid, 'Select exactly one token.');
+      return renderStartOrHub(msg, token);
+    }
+
+    if (action === 'hub') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderHub(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'reset') {
+      const tokenId = args[0];
+      clearSession(tokenId);
+      return whisperBoth(msg.playerid, H.box(H.title('Reset') + H.row('Character creation session cleared.')));
+    }
+
+    if (action === 'name') {
+      const tokenId = args[0];
+      const chosenName = args.slice(1).join('|');
+      const token = getObj('graphic', tokenId);
+      if (!token) return error(msg.playerid, 'Token not found.');
+      const character = characterFromToken(token, chosenName);
+      const session = {
+        playerId: msg.playerid, tokenId, characterId: character.id,
+        name: character.get('name'), rerollsUsed: 0, rolledSet: [], remainingRolls: [], assignedScores: { strength: null, intelligence: null, wisdom: null, dexterity: null, constitution: null, charisma: null }, baseStats: null, finalStats: null,
+        race: null, className: null, alignment: null, level: 1, xp: 0, exceptionalStrength: '',
+        appliedRaceAdjustments: null,
+        gender: 'male', age: '', height: '', weight: '', eyes: '', hair: '',
+        movement: 12, movementHeavy: 9, movementLoad: 6, movementMax: 15,
+        startingWalletGp: 0, startingMoneyFormula: '', startingMoneyRolls: [], walletGp: 0, coins: { gp: 0, sp: 0, ep: 0, cp: 0, pp: 0 }, purchases: [], cart: [],
+        hpTotal: 1, hpLog: [], languages: ['Common']
+      };
+      setSession(tokenId, session);
+      liveWriteCoins(session);
+      liveWriteRaceClassLevelAlignment(session);
+      liveWriteHpAndMovement(session);
+      liveWriteDetails(session);
+      return renderHub(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'manualscores') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      const vals = args.slice(1, 7).map(v => parseInt(v, 10));
+      if (vals.length !== 6 || vals.some(v => isNaN(v))) return error(msg.playerid, 'Enter all six ability scores.');
+      if (vals.some(v => v < 3 || v > 18)) return error(msg.playerid, 'Each score must be between 3 and 18.');
+      session.rolledSet = vals.slice();
+      session.remainingRolls = vals.slice().sort((a,b)=>b-a);
+      session.assignedScores = { strength: null, intelligence: null, wisdom: null, dexterity: null, constitution: null, charisma: null };
+      session.baseStats = null;
+      session.finalStats = null;
+      syncLanguages(session);
+      setSession(tokenId, session);
+      return renderAssignMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'rollabilities') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (session.rolledSet && session.rolledSet.length) {
+        return renderRolledSet(msg.playerid, tokenId, session);
+      }
+      session.rolledSet = rollAbilitySet();
+      session.remainingRolls = clone(session.rolledSet);
+      session.assignedScores = { strength: null, intelligence: null, wisdom: null, dexterity: null, constitution: null, charisma: null };
+      session.baseStats = null;
+      session.finalStats = null;
+      setSession(tokenId, session);
+      return renderRolledSet(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'reroll') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (session.rerollsUsed >= 3) return error(msg.playerid, 'No rerolls remaining.');
+      session.rerollsUsed += 1;
+      session.rolledSet = rollAbilitySet();
+      session.remainingRolls = clone(session.rolledSet);
+      session.assignedScores = { strength: null, intelligence: null, wisdom: null, dexterity: null, constitution: null, charisma: null };
+      session.baseStats = null;
+      session.finalStats = null;
+      setSession(tokenId, session);
+      return renderRolledSet(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'assignmenu') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderAssignMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'assignability') {
+      const tokenId = args[0];
+      const ability = args[1];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (ABILITIES.indexOf(ability) === -1) return error(msg.playerid, 'Invalid ability.');
+      return renderAssignPicker(msg.playerid, tokenId, session, ability);
+    }
+
+    if (action === 'assignpick') {
+      const tokenId = args[0];
+      const ability = args[1];
+      const value = parseInt(args[2], 10);
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (ABILITIES.indexOf(ability) === -1) return error(msg.playerid, 'Invalid ability.');
+
+      const choices = [];
+      if (typeof session.assignedScores[ability] === 'number') {
+        choices.push(session.assignedScores[ability]);
+      }
+      (session.remainingRolls || []).forEach(v => {
+        choices.push(v);
+      });
+      if (choices.indexOf(value) === -1) return error(msg.playerid, 'That value is not available for this assignment.');
+
+      setAssignedValue(session, ability, value);
+      syncExceptionalStrength(session);
+      if (session.baseStats) {
+        if (session.className) applyDefaultLevelDerived(session);
+        liveWriteAllAssignedStats(session);
+        liveWriteRaceClassLevelAlignment(session);
+        liveWriteHpAndMovement(session);
+      }
+      setSession(tokenId, session);
+      return renderAssignMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'racemenu') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderRaceMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'race') {
+      const tokenId = args[0];
+      const race = args.slice(1).join('|');
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (!session.baseStats) return error(msg.playerid, 'Assign abilities first.');
+      if (!RACE_DATA[race]) return error(msg.playerid, 'Invalid race.');
+      const adjusted = applyRacialAdjustments(session.baseStats, race);
+      if (!raceMeetsLimits(race, adjusted)) return error(msg.playerid, 'That race is blocked by current ability minimums/maximums.');
+      session.race = race;
+      session.finalStats = adjusted;
+      session.bonusLanguages = [];
+      syncLanguages(session);
+      if (session.className) applyDefaultLevelDerived(session);
+      liveWriteAllAssignedStats(session);
+      liveWriteRaceClassLevelAlignment(session);
+      liveWriteHpAndMovement(session);
+      setSession(tokenId, session);
+      return renderHub(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'classmenu') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderClassMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'class') {
+      const tokenId = args[0];
+      const className = args.slice(1).join('|');
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (!session.race || !session.finalStats) return error(msg.playerid, 'Choose race and assign abilities first.');
+      if (!session.alignment) return error(msg.playerid, 'Choose alignment first.');
+      const legal = legalClassesForRaceStatsAlignment(session.race, session.finalStats, session.alignment);
+      if (legal.indexOf(className) === -1) return error(msg.playerid, 'Illegal class for current race, stats, or alignment.');
+      session.className = className;
+      syncExceptionalStrength(session);
+      applyDefaultLevelDerived(session);
+      liveWriteAllAssignedStats(session);
+      liveWriteRaceClassLevelAlignment(session);
+      liveWriteHpAndMovement(session);
+      setSession(tokenId, session);
+      return renderHub(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'alignmentmenu') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderAlignmentMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'alignment') {
+      const tokenId = args[0];
+      const alignment = args.slice(1).join('|');
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (!session.race || !session.finalStats) return error(msg.playerid, 'Choose race and assign abilities first.');
+
+      if (session.className) {
+        const legal = legalAlignmentsForClass(session.className);
+        if (legal.indexOf(alignment) === -1) return error(msg.playerid, 'Illegal alignment for class.');
+      } else {
+        if (ALIGNMENTS.indexOf(alignment) === -1) return error(msg.playerid, 'Invalid alignment.');
+      }
+
+      session.alignment = alignment;
+      liveWriteRaceClassLevelAlignment(session);
+      setSession(tokenId, session);
+      return renderHub(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'levelmenu') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderLevelMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'level') {
+      const tokenId = args[0];
+      const chosen = clamp(parseInt(args[1], 10) || 1, 1, 99);
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (!session.className) return error(msg.playerid, 'Choose class first.');
+
+      session.level = chosen;
+      session.xp = xpForLevel(session.className, chosen);
+
+      const money = moneyForClass(session.className);
+      session.walletGp = money.totalGp;
+      session.startingWalletGp = money.totalGp;
+      session.coins = goldToCoins(money.totalGp);
+      session.startingMoneyFormula = money.formula;
+      session.startingMoneyRolls = money.rolls;
+
+      const conMod = constitutionHpMod((session.finalStats && session.finalStats.constitution) || 10);
+      const hp = hpForLevel(session.className, session.level, conMod);
+      session.hpTotal = hp.total;
+      session.hpLog = hp.log;
+
+      liveWriteRaceClassLevelAlignment(session);
+      liveWriteHpAndMovement(session);
+      liveWriteCoins(session);
+      setSession(tokenId, session);
+      return renderHub(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'languagemenu') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderLanguageMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'languagetoggle') {
+      const tokenId = args[0];
+      const lang = args.slice(1).join('|');
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (!session.race || !session.finalStats) return error(msg.playerid, 'Choose race and assign abilities first.');
+      syncLanguages(session);
+      const base = RACE_DATA[session.race] ? clone(RACE_DATA[session.race].languages || []) : ['Common'];
+      if (base.indexOf(lang) !== -1) return renderLanguageMenu(msg.playerid, tokenId, session);
+      session.bonusLanguages = uniqueStrings(session.bonusLanguages || []);
+      const idxLang = session.bonusLanguages.indexOf(lang);
+      if (idxLang !== -1) {
+        session.bonusLanguages.splice(idxLang, 1);
+      } else {
+        const maxPicks = intBonusLanguageCount(session.finalStats ? session.finalStats.intelligence : 0);
+        if (session.bonusLanguages.length >= maxPicks) return error(msg.playerid, 'No bonus language picks remaining.');
+        if (BONUS_LANGUAGE_POOL.indexOf(lang) === -1) return error(msg.playerid, 'Invalid language.');
+        session.bonusLanguages.push(lang);
+      }
+      syncLanguages(session);
+      liveWriteRaceClassLevelAlignment(session);
+      setSession(tokenId, session);
+      return renderLanguageMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'manualassign') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      const vals = args.slice(1, 7).map(v => parseInt(v, 10));
+      if (vals.length !== 6 || vals.some(v => isNaN(v))) return error(msg.playerid, 'Enter all six ability scores.');
+      if (vals.some(v => v < 3 || v > 18)) return error(msg.playerid, 'Each score must be between 3 and 18.');
+      session.rolledSet = vals.slice();
+      session.assignedScores = {
+        strength: vals[0],
+        intelligence: vals[1],
+        wisdom: vals[2],
+        dexterity: vals[3],
+        constitution: vals[4],
+        charisma: vals[5]
+      };
+      session.remainingRolls = [];
+      session.baseStats = clone(session.assignedScores);
+      session.finalStats = clone(session.baseStats);
+      if (session.race) session.finalStats = applyRacialAdjustments(session.baseStats, session.race);
+      syncExceptionalStrength(session);
+      syncLanguages(session);
+      if (session.className) applyDefaultLevelDerived(session);
+      liveWriteAllAssignedStats(session);
+      liveWriteRaceClassLevelAlignment(session);
+      liveWriteHpAndMovement(session);
+      setSession(tokenId, session);
+      return renderAssignMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'dropability') {
+      const tokenId = args[0];
+      const ability = args[1];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (ABILITIES.indexOf(ability) === -1) return error(msg.playerid, 'Invalid ability.');
+      clearAssignedValue(session, ability);
+      liveWriteAllAssignedStats(session);
+      liveWriteRaceClassLevelAlignment(session);
+      liveWriteHpAndMovement(session);
+      setSession(tokenId, session);
+      return renderAssignMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'detailsmenu') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderDetailsMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'rolldetails') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      const hw = rollHeightWeight(session.race || 'Human', session.gender || 'male');
+      session.age = rollAge(session.race || 'Human');
+      session.height = inchesToFeetString(hw.inches);
+      session.weight = hw.weight;
+      session.eyes = rollEyes();
+      session.hair = rollHair();
+      liveWriteDetails(session);
+      setSession(tokenId, session);
+      return renderDetailsMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'setdetails') {
+      const tokenId = args[0];
+      const [gender, age, height, weight, eyes, hair] = args;
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      session.gender = gender;
+      session.age = age;
+      session.height = height;
+      session.weight = weight;
+      session.eyes = eyes;
+      session.hair = hair;
+      liveWriteDetails(session);
+      setSession(tokenId, session);
+      return renderDetailsMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'refreshderived') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (session.className) applyDefaultLevelDerived(session);
+      forceDerivedRefresh(session);
+      setSession(tokenId, session);
+      return renderHub(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'viewcart') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderCart(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'removecart') {
+      const tokenId = args[0];
+      const idx = parseInt(args[1], 10);
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      const result = removeCartIndex(session, idx);
+      if (!result.ok) return error(msg.playerid, result.msg);
+      liveWriteCoins(session);
+      setSession(tokenId, session);
+      return renderCart(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'checkout') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      const result = checkoutCart(session);
+      if (!result.ok) return error(msg.playerid, result.msg);
+      setSession(tokenId, session);
+      return renderEquipmentCategories(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'equipweapons') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderWeaponSyncMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'equipweaponitem') {
+      const tokenId = args[0];
+      const idx = parseInt(args[1], 10);
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      const ok = syncOneWeaponFromPurchase(session, idx);
+      if (!ok) return error(msg.playerid, 'Weapon could not be equipped.');
+      setSession(tokenId, session);
+      return renderWeaponSyncMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'equiparmor') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderArmorSyncMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'equiparmoritem') {
+      const tokenId = args[0];
+      const idx = parseInt(args[1], 10);
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      const ok = syncOneArmorFromPurchase(session, idx);
+      if (!ok) return error(msg.playerid, 'Armor could not be equipped.');
+      setSession(tokenId, session);
+      return renderArmorSyncMenu(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'equipmenu') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderEquipmentCategories(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'equipcat') {
+      const tokenId = args[0];
+      const category = args[1];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      return renderEquipmentList(msg.playerid, tokenId, session, category);
+    }
+
+    if (action === 'addtocart') {
+      const tokenId = args[0];
+      const itemKey = args[1];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      const result = addToCart(session, itemKey);
+      if (!result.ok) return error(msg.playerid, result.msg);
+      liveWriteCoins(session);
+      setSession(tokenId, session);
+      return renderEquipmentCategories(msg.playerid, tokenId, session);
+    }
+
+    if (action === 'finish') {
+      const tokenId = args[0];
+      const session = getSession(tokenId);
+      if (!session) return error(msg.playerid, 'No active session.');
+      if (!session.baseStats || !session.race || !session.className || !session.alignment) {
+        return error(msg.playerid, 'Complete abilities, race, class, and alignment first.');
+      }
+      if (!session.age) {
+        const hw = rollHeightWeight(session.race || 'Human', session.gender || 'male');
+        session.age = rollAge(session.race || 'Human');
+        session.height = inchesToFeetString(hw.inches);
+        session.weight = hw.weight;
+        session.eyes = rollEyes();
+        session.hair = rollHair();
+        liveWriteDetails(session);
+      }
+      setSession(tokenId, session);
+      sendSummary(msg.playerid, session);
+      clearSession(tokenId);
+      return;
+    }
+
+    if (action === 'raceinfo') {
+      const tokenId = args[0];
+      const race = args.slice(1).join('|');
+      return renderRaceInfo(msg.playerid, tokenId, race);
+    }
+
+    if (action === 'racereq') {
+      const tokenId = args[0];
+      const race = args.slice(1).join('|');
+      return renderRaceRequirements(msg.playerid, tokenId, race);
+    }
+
+    if (action === 'classinfo') {
+      const tokenId = args[0];
+      const className = args.slice(1).join('|');
+      return renderClassInfo(msg.playerid, tokenId, className);
+    }
+
+    if (action === 'requirements') {
+      const tokenId = args[0];
+      const className = args.slice(1).join('|');
+      return renderRequirements(msg.playerid, tokenId, className);
+    }
+
+    if (action === 'abilitynotes') {
+      const tokenId = args[0];
+      const rows = ABILITIES.map(a => H.row(`<b>${ABILITY_LABELS[a]}</b>: ${H.esc(summarizeAbilityInfo(a))}`)).join('');
+      whisperBoth(msg.playerid, H.box(H.title('Ability Notes') + rows + H.row(H.btn('Back', `${CMD} --hub|${tokenId}`))));
+      return;
+    }
+
+    if (action === 'help') {
+      return whisperBoth(msg.playerid, H.box(
+        H.title('NewCharacter1E Help') +
+        H.row('Select one token and run !newcharacter') +
+        H.row('Use the main menu buttons to complete each section in any order.')
+      ));
+    }
+  });
+
+  on('ready', () => {
+    initState();
+    log(`${SCRIPT} v${VERSION} ready`);
+  });
+
+  return {};
+})();
