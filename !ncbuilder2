@@ -5366,13 +5366,15 @@
 
     remaining.forEach(addChoice);
 
-    const query = `${CMD} --assignpick|${tokenId}|${ability}|?{${label}|${choices.join('|')}}`;
+    const chooseCmd = remaining.length === 1
+      ? `${CMD} --assignpick|${tokenId}|${ability}|${remaining[0]}`
+      : `${CMD} --assignpick|${tokenId}|${ability}|?{${label}|${choices.join('|')}}`;
 
     const html = H.box(
       H.title(`Assign ${label}`) +
       H.row(`Remaining values: ${H.esc(remaining.join(', ') || 'none')}`) +
       H.row(`Current ${label}: ${current === null || typeof current === 'undefined' ? '—' : current}`) +
-      H.row(H.btn(`Choose ${label}`, query)) +
+      H.row(H.btn(`Choose ${label}`, chooseCmd)) +
       H.row(H.btn('Back', `${CMD} --assignmenu|${tokenId}`))
     );
 
