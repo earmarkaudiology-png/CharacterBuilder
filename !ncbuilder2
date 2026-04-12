@@ -4972,6 +4972,7 @@
     const c = createObj('character', { name: String(chosenName || token.get('name') || 'New Character').trim() || 'New Character' });
     token.set('represents', c.id);
     setAttr(c.id, ATTR.name, c.get('name'));
+    setAttr(c.id, 'is_npc', 0);
     Object.keys(SHEET_DEFAULTS).forEach(k => setAttr(c.id, k, SHEET_DEFAULTS[k]));
     return c;
   };
@@ -5305,6 +5306,7 @@
     const represented = token.get('represents');
     if (represented) {
       const c = getObj('character', represented);
+      setAttr(represented, 'is_npc', 0);
       const session = {
         playerId: msg.playerid, tokenId: token.id, characterId: represented,
         name: c ? c.get('name') : token.get('name') || 'New Character',
@@ -5362,7 +5364,6 @@
       choices.push(`${display},${value}`);
     };
 
-    if (typeof current === 'number') addChoice(current);
     remaining.forEach(addChoice);
 
     const query = `${CMD} --assignpick|${tokenId}|${ability}|?{${label}|${choices.join('|')}}`;
@@ -6083,7 +6084,12 @@
 
     if (action === 'setdetails') {
       const tokenId = args[0];
-      const [gender, age, height, weight, eyes, hair] = args;
+      const gender = args[1];
+      const age = args[2];
+      const height = args[3];
+      const weight = args[4];
+      const eyes = args[5];
+      const hair = args[6];
       const session = getSession(tokenId);
       if (!session) return error(msg.playerid, 'No active session.');
       session.gender = gender;
