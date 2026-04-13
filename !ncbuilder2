@@ -4020,7 +4020,6 @@
   const whisperToGM = (html) => sendChat(SCRIPT, `/w gm ${html}`);
   const whisperBoth = (playerId, html) => {
     whisperToPlayer(playerId, html);
-    if (!playerIsGM(playerId)) whisperToGM(html);
   };
 
   const makeRowId = () => {
